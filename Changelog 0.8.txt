@@ -1,0 +1,21 @@
+
+Fair Fight Changelog V 0.8
+
+Added:
+	- Vehicle / Weapon delay settings
+	- customisation to lose parts punishment
+	- Weapon punishments:
+    		 - Toilet (piano cant be force applyed to) {Troll}
+  		 - Brun {Toxic}
+	- Added new wepons group:
+       		- Annoying (Up-n-Atomizer / Flaregun / EMP Launcher / Firework Launcher / Stun gun (mp and sp))
+
+Adjustments:
+	- Moved:
+     		- Disable weapon punishment from {Troll} to {Toxic} (bc it feels like it's toxic) 
+		- Credits from "FairFight>Credits" into "FairFight>Info / Settings>Credits"
+
+	- Adjusted drop and delete function in every weapons group 
+	- Fixed maths issue in time on tires punishment 
+	- Fixed some typos in notification messages
+	

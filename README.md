@@ -1,30 +1,32 @@
-# FairFight
+# FairFight (FF)
 A Lua to force a fair fight for stand.
 
 <hr>  </hr>
 
-### Getting shit on by some Mk2 griefer?
-
-FF has multiple [punishments](https://github.com/MrWalll/FairFight/edit/main/README.md#most-of-the-included-guns-and-vehicles) for you to chose from. 
-
+Players you try to fight use RPGs, minigun, MK2 or some other skilless things?
+<br>
+**Then FF is the solution.**
+</br>
+In a matter of seconds, you can force them to fight you, with fair things. Or punish them if they don't.
 
 <hr>  </hr>
 
-### Most of the included guns and vehicles
+### What is this?
 
-<sub> These are just some of the punishments, weapons and cars there are a few more </sub>
+Well this script is, like the name says, to fight fair. With that I mean you can do things to players that will _stop_ them from using certain gun groups, vehicles, passive mode and even _god mode_ (only works on some menus). <sub> <sup> There is more to explore :)</sup> </sub>
+<br>
+Now if they ***_still_*** try to use those things..
+<br>
+**You** decide what will happen by choosing between multiple punishments. 
+</br>
 
-| Weapons  | Vehicles | Punishments |
-| :---  | :---: | ---: |
-| RPG  | Lazer  | Fly |
-| Minigun  | MK2  | Lobby Kick |
-| Homing Launcher  | Hydra  | Burn |
-| Granade Launcher  | RC Bandito  | Explode |
-| Widowmaker  | Tanks  | Lose parts |
-| Stickybomb  | Savage  | Destroy engine |
-| Granade  | Hunter  | Flip |
-| Stun gun  | Akula  | Slingshot |
-| Up-n-Atomizer  | B11  | Emp |
-| Flaregun  | Toreador  | Delete |
-| Fierework Launcher  | Deluxo  | Toilet |
-| EMP Launcher  | Scramjet  | Tires |
+
+<hr> </hr>
+
+### How do i install it?
+
+Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/#--manual-installation).
+<br>
+Or the short way: **_Place_** the `.lua` in `%appdata%\Stand\Lua Scripts`
+
+

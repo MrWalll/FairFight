@@ -27,6 +27,9 @@ Now if they ***_still_*** try to use those things..
 
 Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/#--manual-installation).
 <br>
-Or the short way: **_Place_** the `.lua` in `%appdata%\Stand\Lua Scripts`
+In general **_place_** the `.lua` in `%appdata%\Stand\Lua Scripts` 
+<br>
+and the `FF.png` inside `%appdata%\Stand\Lua Scripts\resources`
+
 
 

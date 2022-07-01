@@ -29,7 +29,10 @@ Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/#
 <br>
 In general **_place_** the `.lua` in `%appdata%\Stand\Lua Scripts` 
 <br>
-and the `FF.png` inside `%appdata%\Stand\Lua Scripts\resources`
+<br>
+**Startup logo install:**
+<br>
+Place the `FF.png` inside `%appdata%\Stand\Lua Scripts\resources`
 
 
 

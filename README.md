@@ -20,6 +20,13 @@ Now if they ***_still_*** try to use those things..
 **You** decide what will happen by choosing between multiple punishments. 
 </br>
 
+<hr>  </hr>
+
+### Known bugs
+
+- [ ] Tase punishment missing the player
+- [ ] Firework punishment not showing effects
+
 
 <hr> </hr>
 

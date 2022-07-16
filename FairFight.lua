@@ -20,11 +20,11 @@ local FF_logo = none
 if filesystem.exists(filesystem.resources_dir().."FF.png") then 
     FF_logo = directx.create_texture(filesystem.resources_dir().."FF.png")
 end
-
+local playerList = {}
 local veh = entities.get_user_vehicle_as_pointer()
 local vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
-local vehDelay = 2500
-local weapDelay = 2500
+local vehDelay = 3500
+local weapDelay = 4000
 local fire = util.joaat("prop_beach_fire")
 local ownPed = players.user_ped()
 local HList = {
@@ -47,15 +47,50 @@ local AList = {
         [util.joaat("weapon_flaregun")] = true,
         [util.joaat("weapon_emplauncher")] = true,
         [util.joaat("weapon_firework")] = true
-}
+        }
 local SList = {
         [util.joaat("weapon_gadgetpistol")] = true,
         [util.joaat("weapon_marksmanpistol")] = true,
         [util.joaat("weapon_marksmanrifle")] = true,
         [util.joaat("weapon_marksmanrifle_mk2")] = true
-}
+        }
+local loadout = {
+    [324215364] = {
+      [1] = -1657815255,
+      [2] = -1489156508,
+      [3] = 283556395,
+      ["tint"] = 3
+   },
+   [3347935668] = {
+      [1] = -1596416958,
+      [2] = 1824470811,
+      ["tint"] = 0
+   },
+   [741814745] = {
+      ["tint"] = 0
+   },
+   [2982836145] = {
+      ["tint"] = 7
+   },
+   [1672152130] = {
+      ["tint"] = 3
+   },
+   [1119849093] = {
+      ["tint"] = 7
+   },
+   [2725352035] = {
+      ["tint"] = 0
+   },
+   [177293209] = {
+      [1] = 277524638,
+      [2] = 1602080333,
+      [3] = 752418717,
+      [4] = 776198721,
+      ["tint"] = 2
+   },
+    }
 
---skidded from sex.lua, just adjusted it to my use. Creadits to the creator (idk who it is lol)
+--skidded from sex.lua, just adjusted it to my use. Credits to the creator (idk who it is lol)
 function logo_startup()
     textBG_alliment = -0
         textBG_allin_incr = 0.001
@@ -153,11 +188,11 @@ function FastNet(entity, playerID, visible)
                 NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
                 util.yield(10)
             else
-                goto continue
+                goto next
             end
         end
     end
-    ::continue::
+    ::next::
     
     NETWORK.NETWORK_REQUEST_CONTROL_OF_NETWORK_ID(netID)
     util.yield(10)
@@ -500,8 +535,14 @@ end
 ----------------------------------------------------------------
 
 function fire_exp_ped(playerID)
-	local pos = ENTITY.GET_ENTITY_COORDS(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID))
-	FIRE.ADD_EXPLOSION(pos.x, pos.y, pos.z, 38, 10, 0, 0, true)
+    local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    local pos = ENTITY.GET_ENTITY_COORDS(ped)
+    local hash = util.joaat("weapon_firework")
+    while not WEAPON.HAS_WEAPON_ASSET_LOADED(hash) do
+       WEAPON.REQUEST_WEAPON_ASSET(hash, 31, 0)
+       util.yield(10)
+    end
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(pos.x, pos.y, pos.z + 0.1, pos.x, pos.y, pos.z, - 0, true, hash, ped, true, true, - 1)
 		util.yield(weapDelay)
 end
 
@@ -510,13 +551,24 @@ end
 ----------------------------------------------------------------
 
 function tase_pl(playerID)
-	local pos = ENTITY.GET_ENTITY_COORDS(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID))
-	local hash = util.joaat("weapon_stungun")
-	WEAPON.REQUEST_WEAPON_ASSET(hash)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(pos.x, pos.y, pos.z+3, pos.x , pos.y, pos.z-2, 1, 0, hash, 0, true, 1000.0)
-		util.yield(weapDelay)
+    local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    local pos = ENTITY.GET_ENTITY_COORDS(ped)
+	--local hit = PED.GET_PED_BONE_COORDS(ped, 12844--[[0x796e head]], 0, 0, 0)
+	local hash = util.joaat("WEAPON_STUNGUN_MP")
+    while not WEAPON.HAS_WEAPON_ASSET_LOADED(hash) do
+	   WEAPON.REQUEST_WEAPON_ASSET(hash, 31, 0)
+       util.yield(10)
+    end
+    --MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(pos.x, pos.y, pos.z + 5, pos.x, pos.y, pos.z - 4, 0, true, hash, players.user_ped(), false, true, - 1, ped, 0)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(pos.x, pos.y, pos.z + 1.0, pos.x, pos.y, pos.z, 1.0, false, hash, ped, true, true, - 1)
+    WEAPON.REMOVE_WEAPON_ASSET(hash)
+    util.yield(weapDelay)
 end
 
+--[[menu.action(menu.my_root(), "TEST",{}, "Line 561", function()
+    tase_pl(players.user())
+    --PED.SET_PED_TO_RAGDOLL(players.user_ped(), 1000, -1, 0, true, true, false)
+end)]]
 ----------------------------------------------------------------
 --Delete weapons
 ----------------------------------------------------------------
@@ -627,6 +679,7 @@ function hasSWeapon(playerID)
     end
 end
 
+
 ----------------------------------------------------------------
 --Header
 ----------------------------------------------------------------
@@ -643,6 +696,22 @@ local selflist = menu.list(menu.my_root(), "Self")
 ----------------------------------------------------------------
 
         menu.divider(selflist, "Self")
+
+        menu.action(selflist, "Give loadout", {}, "This gives yourself a nice loadout to fight", function()
+            WEAPON.REMOVE_ALL_PED_WEAPONS(ownPed, false)
+            WEAPON._SET_CAN_PED_EQUIP_ALL_WEAPONS(ownPed, true)
+            for w_hash, attach in pairs(loadout) do
+                WEAPON.GIVE_WEAPON_TO_PED(ownPed, w_hash, 10, false, true)
+                    for n, a_hash in pairs(attach) do
+                        if n ~= "tint" then
+                            WEAPON.GIVE_WEAPON_COMPONENT_TO_PED(ownPed, w_hash, a_hash)
+                            util.yield(10)
+                        end
+                    end
+                WEAPON.SET_PED_WEAPON_TINT_INDEX(ownPed, w_hash, attach["tint"])
+            end
+            menu.trigger_commands("fillammo")
+        end)
         
         menu.toggle_loop(selflist, "Disable fall damage?", {}, "Disables the fall damage for only you.", function()
             while PED.IS_PED_FALLING(ownPed) do
@@ -668,7 +737,7 @@ local selflist = menu.list(menu.my_root(), "Self")
         local drops = menu.list(selflist, "Drops")
         
         menu.action(drops, "Health", {}, "", function()
-            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 4, 0)
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 1, 0)
             local healthModel = util.joaat("prop_ld_health_pack")
             if STREAMING.IS_MODEL_VALID(healthModel) and not STREAMING.HAS_MODEL_LOADED(healthModel) then
                 STREAMING.REQUEST_MODEL(healthModel)
@@ -683,7 +752,7 @@ local selflist = menu.list(menu.my_root(), "Self")
         end)
 
         menu.action(drops, "Snack", {}, "Drops 30 P's & Q's snacks", function()
-            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 4, 0)
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 1, 0)
             local snackModel = util.joaat("PROP_CHOC_PQ")
             if STREAMING.IS_MODEL_VALID(snackModel) and not STREAMING.HAS_MODEL_LOADED(snackModel) then
                 STREAMING.REQUEST_MODEL(snackModel)
@@ -696,7 +765,7 @@ local selflist = menu.list(menu.my_root(), "Self")
         end)
 
         menu.action(drops, "Armor", {}, "", function()
-            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 4, 0)
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 1, 0)
             local armourModel = util.joaat("prop_armour_pickup")
             if STREAMING.IS_MODEL_VALID(armourModel) and not STREAMING.HAS_MODEL_LOADED(armourModel) then
                 STREAMING.REQUEST_MODEL(armourModel)
@@ -709,7 +778,7 @@ local selflist = menu.list(menu.my_root(), "Self")
         end)
 
         menu.action(drops, "Parachute", {}, "", function()
-            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 4, 0)
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 1, 0)
             local chuteModel = util.joaat("p_parachute_s_shop")
             if STREAMING.IS_MODEL_VALID(chuteModel) and not STREAMING.HAS_MODEL_LOADED(chuteModel) then
                 STREAMING.REQUEST_MODEL(chuteModel)
@@ -732,8 +801,9 @@ local plist = menu.list(menu.my_root(), "Player Options")
 ----------------------------------------------------------------
 --Player Options
 ----------------------------------------------------------------
-
+        
 		menu.divider(plist, "Player Options")
+        local otrPlayers = {}
 		local noarm = false
 		menu.toggle(plist, "No armor", {}, "Will set the players armor to 0 if he has more then 20", function(he)
 			if he then
@@ -791,15 +861,41 @@ local plist = menu.list(menu.my_root(), "Player Options")
 				fall = false
 			end
 		end)
+        menu.toggle_loop(plist, 'OTR reveal all', {''}, 'Marks otr players with custom colored blips.', function()
+            playerList = players.list(false, true, true)
+            for i, pid in pairs(playerList) do
+                if players.is_otr(pid) and not otrPlayers[pid] then
+                    local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
+                    otrPlayers[pid] = HUD.ADD_BLIP_FOR_ENTITY(ped)
+                    HUD.SET_BLIP_SPRITE(otrPlayers[pid], 270)
+                    HUD.SET_BLIP_COLOUR(otrPlayers[pid], 8)
+                elseif players.is_otr(pid) then
+                    HUD.SET_BLIP_SPRITE(otrPlayers[pid], 270)
+                    HUD.SET_BLIP_COLOUR(otrPlayers[pid], 8)
+                elseif not players.is_otr(pid) and otrPlayers[pid] then
+                    util.remove_blip(otrPlayers[pid])
+                    otrPlayers[pid] = nil
+                end
+            end
+        end, function()
+            for i, pid in pairs(playerList) do
+                if otrPlayers[pid] then
+                    util.remove_blip(otrPlayers[pid])
+                    otrPlayers[pid] = nil
+                end
+            end
+        end)
 
 ----------------------------------------------------------------
 --Weapons
 ----------------------------------------------------------------
 		local weapons = menu.list(menu.my_root(), "Weapon Options")
-		menu.divider(weapons, "Weapons")
+		menu.divider(weapons, "Weapon options")
 
+        local selectW = menu.list(weapons, "Weapons")
+        menu.divider(selectW, "Gun selection")
 		local nohw = false
-		menu.toggle(weapons, "Heavy Weapons", {}, "RPG / Minigun / Homing Launcher / Widowmaker / Grenade Launcher\n\nDeletes the weapons if no other punishment is activ.", function(he)
+		menu.toggle(selectW, "Heavy Weapons", {}, "RPG / Minigun / Homing Launcher / Widowmaker / Grenade Launcher\n\nDeletes the weapons if no other punishment is activ.", function(he)
 			if he then
 				nohw = true
 				if Notify then
@@ -813,7 +909,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
 			end
 		end)
 		local nothrow = false
-		menu.toggle(weapons, "Throwables", {}, "Stickybomb / Granade / Proximity Mines / Molotov\n\nDeletes the weapons if no other punishment is activ.", function(he)
+		menu.toggle(selectW, "Throwables", {}, "Stickybomb / Granade / Proximity Mines / Molotov\n\nDeletes the weapons if no other punishment is activ.", function(he)
 			if he then
 				nothrow = true
 				if Notify then
@@ -827,7 +923,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
 			end
 		end)
         local noannoy = false
-        menu.toggle(weapons, "Annoying", {}, "Up-n-Atomizer / Flaregun / EMP Launcher / Firework Launcher / Stun gun (mp and sp)\n\nDeletes the weapons if no other punishment is activ.", function(he)
+        menu.toggle(selectW, "Annoying", {}, "Up-n-Atomizer / Flaregun / EMP Launcher / Firework Launcher / Stun gun (mp and sp)\n\nDeletes the weapons if no other punishment is activ.", function(he)
             if he then
                 noannoy = true
                 if Notify then
@@ -841,7 +937,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
             end
         end)
         local nomarksman = false
-        menu.toggle(weapons, "Semiauto", {}, "Marksman Rifle Mk2 / Marksman Rifle / Marksman Pistol / Gadget Pistol\n\nDeletes the weapons if no other punishment is activ.", function(s)
+        menu.toggle(selectW, "Semiauto", {}, "Marksman Rifle Mk2 / Marksman Rifle / Marksman Pistol / Gadget Pistol\n\nDeletes the weapons if no other punishment is activ.", function(s)
             if s then
                 nomarksman = true
                 if Notify then
@@ -1288,9 +1384,9 @@ local vehlist = menu.list(vlist, "Vehicles")
 			menu.slider(s, "Delay", {"sdelay"}, "Set the loop delay (time is in sec)", 5, 150, tiredelay, 5, function(value)
 				tiredelay = value
 			end)
-			local options = {{"All", {}, ""}, {"Front", {}, ""}, {"Back", {}, ""}, {"Left", {}, ""}, {"Right", {}, ""}, {"Random", {}, "Only one random tire gets targeted"}}
-			menu.list_select(s, "Which", {}, "", options, 1, function (selected)
-    			wheel = options[selected][1]
+			local tires = {{"All", {}, ""}, {"Front", {}, ""}, {"Back", {}, ""}, {"Left", {}, ""}, {"Right", {}, ""}, {"Random", {}, "Only one random tire gets targeted"}}
+			menu.list_select(s, "Which", {}, "", tires, 1, function (selected)
+    			wheel = tires[selected][1]
 			end)
 
         local d = menu.list(Vtoxic, "Lose parts")
@@ -1313,9 +1409,9 @@ local vehlist = menu.list(vlist, "Vehicles")
             menu.slider(d, "Delay", {"sdelay"}, "Set the loop delay (time is in sec)", 5, 150, partsdelay, 5, function(value)
                 partsdelay = value
             end)
-            local options = {{"All", {}, ""}, {"Front doors", {}, ""}, {"Back doors", {}, ""}, {"Hood", {}, ""}, {"Trunk", {}, ""}, {"Left doors", {}, ""}, {"Right doors", {}, ""}, {"Random", {}, "Only ONE random door gets targeted"}}
-            menu.list_select(d, "Which", {}, "", options, 1, function (selected)
-                part = options[selected][1]
+            local doors = {{"All", {}, ""}, {"Front doors", {}, ""}, {"Back doors", {}, ""}, {"Hood", {}, ""}, {"Trunk", {}, ""}, {"Left doors", {}, ""}, {"Right doors", {}, ""}, {"Random", {}, "Only ONE random door gets targeted"}}
+            menu.list_select(d, "Which", {}, "", doors, 1, function (selected)
+                part = doors[selected][1]
             end)
 
 
@@ -1449,7 +1545,6 @@ local vehlist = menu.list(vlist, "Vehicles")
 ----------------------------------------------------------------
 menu.divider(menu.my_root(), "Info / Settings")
 
-local options = {{"Settings", {}, ""}, {"Info", {}, ""}}
 local set = menu.list(menu.my_root(), "Info / Settings")
 
 menu.divider(set, "Settings")
@@ -1461,6 +1556,15 @@ menu.toggle(set, "Toggle Notifications", {}, "Toggle Notifications like 'Tanks O
         Notify = false
     end
 end)
+
+menu.toggle(set, "Effect yourself?", {}, "If toggled you will be effected by the punishments.", function(toggle)
+    if toggle then
+        playerList = players.list(true, true, true)
+    else
+        playerList = players.list(false, true, true)
+    end
+end)
+
 local blacklist_root = menu.list(set, 'Blacklistet players', {}, "See every player that is blacklisted and remove them")
 local player_root = menu.list(blacklist_root, "Player options players")
 local weapon_root = menu.list(blacklist_root, "Weapon options players")
@@ -1468,19 +1572,22 @@ local vehicle_root = menu.list(blacklist_root, "Vehicle options players")
 
 menu.divider(set, "Delays")
 
-menu.slider(set, "Vehicle delay", {"vdelay"}, "Set the loop delay (time is in sec)", 10, 300, 20, 5, function(value)
+menu.slider(set, "Vehicle delay", {"vdelay"}, "Set the loop delay (time is in sec)", 20, 300, 35, 5, function(value)
 	vehDelay = value * 1000
 end)
 
-menu.slider(set, "Weapon delay", {"wdelay"}, "Set the loop delay (time is in sec)", 10, 300, 25, 5, function(value)
+menu.slider(set, "Weapon delay", {"wdelay"}, "Set the loop delay (time is in sec)", 20, 300, 40, 5, function(value)
 	weapDelay = value * 1000
 end)
 
 menu.divider(set, "------------------------")
 local contactlist = menu.list(set, "Credits")
-		menu.hyperlink(contactlist, "Me (Creator of FairFight)", "https://discordapp.com/users/412239651185623040", "Hey thanks for using Fair Fight. You can call me MrWall or Wall for short.\nI am the creator of this script. Even though I don't have much Lua experience, I try to make the most of it.\n\nIf you find a bug or have any suggestions for improvement. Feel free to write me a message on Discord.")
+		menu.hyperlink(contactlist, "Me (Creator of FairFight)", "https://github.com/MrWalll", "Hey thanks for using Fair Fight. You can call me MrWall or Wall.\nI am the creator of this script. Even though I don't have much lua experience, i try to make the most of it.\n\nIf you find a bug or have any suggestions for improvement.  Write me on github or discord")
 		menu.hyperlink(contactlist, "scriptcat", "https://github.com/Keramis/", "Scriptcat is the original creater of the Godmode Check and Remove Godmode Function.\nAll Credit goes to him.")
 		menu.hyperlink(contactlist, "ICYPhoniex", "https://discord.gg/WQE28U7sds", "ICYPhoneix is the original creater of the block/unblock passive mode function.\nAll Credit goes to him.")
+        menu.hyperlink(contactlist, "Jerry", "https://discord.gg/QzqBdHQC9S", "Jerry is the original creater of the reveal otr function. \nAll creadit goes to him.")
+        menu.hyperlink(contactlist, "Dom736", "https://discordapp.com/users/601123654998163475", "Dom is the creator of the npc damage disable function.\nAll Credit goes to him.")
+        menu.hyperlink(contactlist, "Davus", "https://discordapp.com/users/413003042439430144", "Davus is the creator of the Give loadout function.\nAll Credit goes to him.")
 
 ----------------------------------------------------------------
 --Player List Options
@@ -1489,10 +1596,60 @@ local contactlist = menu.list(set, "Credits")
 
 function playerActionsSetup(playerID)
     menu.divider(menu.player_root(playerID), "Fair Fight")
-        
+        local otr = false
         local playerName = players.get_name(playerID)
         local p = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
         local tools = menu.list(menu.player_root(playerID), "Tools", {}, "These options work on legit, but may not work on other modders")
+        local drops = menu.list(menu.player_root(playerID), "Drops")
+        menu.action(drops, "Health", {}, "", function()
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(p, 0, 1, 0)
+            local healthModel = util.joaat("prop_ld_health_pack")
+            if STREAMING.IS_MODEL_VALID(healthModel) and not STREAMING.HAS_MODEL_LOADED(healthModel) then
+                STREAMING.REQUEST_MODEL(healthModel)
+                while not STREAMING.HAS_MODEL_LOADED(healthModel) do
+                    util.yield()
+                end
+            end
+            OBJECT.CREATE_AMBIENT_PICKUP(2406513688, ppos.x, ppos.y, ppos.z, 1, 1, false, healthModel)
+            OBJECT.CREATE_AMBIENT_PICKUP(2406513688, ppos.x, ppos.y, ppos.z, 1, 1, false, healthModel)
+            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(healthModel)
+        end)
+        menu.action(drops, "Snack", {}, "Drops 30 P's & Q's snacks", function()
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(p, 0, 1, 0)
+            local snackModel = util.joaat("PROP_CHOC_PQ")
+            if STREAMING.IS_MODEL_VALID(snackModel) and not STREAMING.HAS_MODEL_LOADED(snackModel) then
+                STREAMING.REQUEST_MODEL(snackModel)
+                while not STREAMING.HAS_MODEL_LOADED(snackModel) do
+                    util.yield()
+                end
+            end
+            OBJECT.CREATE_AMBIENT_PICKUP(483577702, ppos.x, ppos.y, ppos.z, 1, 30, false, snackModel)
+            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(snackModel)
+        end)
+        menu.action(drops, "Armor", {}, "", function()
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(p, 0, 1, 0)
+            local armourModel = util.joaat("prop_armour_pickup")
+            if STREAMING.IS_MODEL_VALID(armourModel) and not STREAMING.HAS_MODEL_LOADED(armourModel) then
+                STREAMING.REQUEST_MODEL(armourModel)
+                while not STREAMING.HAS_MODEL_LOADED(armourModel) do
+                    util.yield()
+                end
+            end
+            OBJECT.CREATE_AMBIENT_PICKUP(1274757841, ppos.x, ppos.y, ppos.z, 1, 1, false, armourModel)
+            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(armourModel)
+        end)
+        menu.action(drops, "Parachute", {}, "", function()
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(p, 0, 1, 0)
+            local chuteModel = util.joaat("p_parachute_s_shop")
+            if STREAMING.IS_MODEL_VALID(chuteModel) and not STREAMING.HAS_MODEL_LOADED(chuteModel) then
+                STREAMING.REQUEST_MODEL(chuteModel)
+                while not STREAMING.HAS_MODEL_LOADED(chuteModel) do
+                    util.yield()
+                end
+            end
+            OBJECT.CREATE_AMBIENT_PICKUP(1735599485, ppos.x, ppos.y, ppos.z, 1, 1, false, chuteModel)
+            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(chuteModel)
+        end)
         menu.action(tools, "Godmode Check", {"godcheck"}, "", function()
             if players.is_godmode(playerID) and not players.is_in_interior(playerID) then
                     util.toast(players.get_name(playerID) .. " is in godmode!")
@@ -1508,6 +1665,27 @@ function playerActionsSetup(playerID)
             elseif players.is_in_interior(playerID) then
                 util.toast("" .. playerName .. " is in an interior. Try again if he is outside again.")
                 menu.commands("nogod" .. playerName)
+            end
+        end)
+        menu.toggle_loop(tools, 'OTR reveal', {}, 'Reveals '.. playerName ..' possition on the map.', function()
+            if players.is_otr(playerID) and not otr then
+                local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+                pblip = HUD.ADD_BLIP_FOR_ENTITY(ped)
+                HUD.SET_BLIP_SPRITE(pblip, 102)
+                otr = true
+                HUD.SET_BLIP_COLOUR(pblip, 48)
+            elseif players.is_otr(playerID) then
+                HUD.SET_BLIP_SPRITE(pblip, 102)
+                HUD.SET_BLIP_COLOUR(pblip, 48)
+                otr = true
+            elseif not players.is_otr(playerID) and otr then
+                util.remove_blip(pblip)
+                otr = false
+            end
+        end, function()
+            if otr then
+                util.remove_blip(pblip)
+                otr = false
             end
         end)
         --Block/unblock passive mode is from PhoenixScript so all credit for it, goes to ICYPhoneix
@@ -1546,67 +1724,70 @@ function playerActionsSetup(playerID)
                             end
                         end)]]
         local sub = menu.list(menu.player_root(playerID), "Exceptions")
-            menu.toggle(sub, "Blacklist from Player Options", {"plblacklist" ..playerName}, "Blacklists " .. playerName .. " from all player related options.", function(on)
-            if on then
-                PLAYER_WHITELIST[playerID] = true
-                BLACKLIST_TOGGLED_P[playerID] = menu.action(player_root, playerName, {}, "Deletes " .. playerName .. " from the list", function()
-                        if Notify then
-                            util.toast(playerName .. " is no longer on the blacklist")
-                        end
-                    util.yield(5)
-                    PLAYER_WHITELIST[playerID] = false --removes the player from the blacklist
-                    menu.trigger_commands("plblacklist" ..playerName)
-                end)
-            else
-                menu.delete(BLACKLIST_TOGGLED_P[playerID])
+        menu.toggle(sub, "Blacklist from Player Options", {"plblacklist" ..playerName}, "Blacklists " .. playerName .. " from all player related options.", function(on)
+        if on then
+            PLAYER_WHITELIST[playerID] = true
+            BLACKLIST_TOGGLED_P[playerID] = menu.action(player_root, playerName, {}, "Deletes " .. playerName .. " from the list", function()
+                    if Notify then
+                        util.toast(playerName .. " is no longer on the blacklist")
+                    end
+                util.yield(5)
                 PLAYER_WHITELIST[playerID] = false
-            end
+                menu.trigger_commands("plblacklist" ..playerName)
             end)
-            menu.toggle(sub, "Blacklist from Weapon Options", {"wpblacklist" ..playerName}, "Blacklists " .. playerName .. " from all weapon related options.", function(on)
-            if on then
-                WEAPON_WHITELIST[playerID] = true
-                BLACKLIST_TOGGLED_W[playerID] = menu.action(weapon_root, playerName, {}, "Deletes " .. playerName .. " from the list", function()
-                        if Notify then
-                            util.toast(playerName .. " is no longer on the blacklist")
-                        end
-                    util.yield(5)
-                    WEAPON_WHITELIST[playerID] = false --removes the player from the blacklist
-                    menu.trigger_commands("wpblacklist" ..playerName)
-                end)
-            else
-                menu.delete(BLACKLIST_TOGGLED_W[playerID])
+        else
+            menu.delete(BLACKLIST_TOGGLED_P[playerID])
+            PLAYER_WHITELIST[playerID] = false
+        end
+        end)
+        menu.toggle(sub, "Blacklist from Weapon Options", {"wpblacklist" ..playerName}, "Blacklists " .. playerName .. " from all weapon related options.", function(on)
+        if on then
+            WEAPON_WHITELIST[playerID] = true
+            BLACKLIST_TOGGLED_W[playerID] = menu.action(weapon_root, playerName, {}, "Deletes " .. playerName .. " from the list", function()
+                    if Notify then
+                        util.toast(playerName .. " is no longer on the blacklist")
+                    end
+                util.yield(5)
                 WEAPON_WHITELIST[playerID] = false
-            end
+                menu.trigger_commands("wpblacklist" ..playerName)
             end)
-            menu.toggle(sub, "Blacklist from Vehicle Options", {"vhblacklist" ..playerName}, "Blacklists " .. playerName .. " from all vehicle related options.", function(on)
-            if on then
-                VEHICLE_WHITELIST[playerID] = true
-                BLACKLIST_TOGGLED_V[playerID] = menu.action(vehicle_root, playerName, {}, "Deletes " .. playerName .. " from the list", function()
-                        if Notify then
-                            util.toast(playerName .. " is no longer on the blacklist")
-                        end
-                    util.yield(5)
-                    VEHICLE_WHITELIST[playerID] = false --removes the player from the blacklist
-                    menu.trigger_commands("vhblacklist" ..playerName)
-                end)
-            else
-                menu.delete(BLACKLIST_TOGGLED_V[playerID])
+        else
+            menu.delete(BLACKLIST_TOGGLED_W[playerID])
+            WEAPON_WHITELIST[playerID] = false
+        end
+        end)
+        menu.toggle(sub, "Blacklist from Vehicle Options", {"vhblacklist" ..playerName}, "Blacklists " .. playerName .. " from all vehicle related options.", function(on)
+        if on then
+            VEHICLE_WHITELIST[playerID] = true
+            BLACKLIST_TOGGLED_V[playerID] = menu.action(vehicle_root, playerName, {}, "Deletes " .. playerName .. " from the list", function()
+                    if Notify then
+                        util.toast(playerName .. " is no longer on the blacklist")
+                    end
+                util.yield(5)
                 VEHICLE_WHITELIST[playerID] = false
+                menu.trigger_commands("vhblacklist" ..playerName)
+            end)
+        else
+            menu.delete(BLACKLIST_TOGGLED_V[playerID])
+            VEHICLE_WHITELIST[playerID] = false
+        end
+        end)
+        players.on_leave(function()
+            if BLACKLIST_TOGGLED_V[playerID] then
+                menu.delete(BLACKLIST_TOGGLED_V[playerID])
+                VEHICLE_WHITELIST[playerID] = nil
+            elseif BLACKLIST_TOGGLED_W[playerID]  then
+                menu.delete(BLACKLIST_TOGGLED_W[playerID])
+                WEAPON_WHITELIST[playerID] = nil
+            elseif BLACKLIST_TOGGLED_P[playerID] then
+                menu.delete(BLACKLIST_TOGGLED_P[playerID])
+                PLAYER_WHITELIST[playerID] = nil
+            elseif otr then
+                    util.remove_blip(pblip)
+                    otr = false
+            else
             end
-            end)
-            players.on_leave(function()
-                if BLACKLIST_TOGGLED_V[playerID] then
-                    menu.delete(BLACKLIST_TOGGLED_V[playerID])
-                    VEHICLE_WHITELIST[playerID] = false --removes the player from the whitelist
-                elseif BLACKLIST_TOGGLED_W[playerID]  then
-                    menu.delete(BLACKLIST_TOGGLED_W[playerID])
-                    WEAPON_WHITELIST[playerID] = false --removes the player from the whitelist
-                elseif BLACKLIST_TOGGLED_P[playerID] then
-                    menu.delete(BLACKLIST_TOGGLED_P[playerID])
-                    PLAYER_WHITELIST[playerID] = false --removes the player from the whitelist
-                else
-                end
-            end)
+        end)
 end
 
 players.on_join(playerActionsSetup)
@@ -1618,9 +1799,8 @@ players.dispatch_on_join()
 local lastReaction = util.current_time_millis()
 local delay = 1500
 while true do
-	for a = 0,31 do
+	for k,a in pairs(playerList) do
 		if players.exists(a) then
-			local isLocalPlayer = a == PLAYER.PLAYER_ID()
 			local p = PLAYER.GET_PLAYER_PED(a)
             local pos = ENTITY.GET_ENTITY_COORDS(p)
             local rot = ENTITY.GET_ENTITY_ROTATION(p, 2)
@@ -1631,7 +1811,7 @@ while true do
 --Handle Player Options
 ----------------------------------------------------------------
 			
-			if noarm and not PLAYER_WHITELIST[a] and not isLocalPlayer then
+			if noarm and not PLAYER_WHITELIST[a] then
 				d = PED.GET_PED_ARMOUR(p)
 				if d > 20 then
 					if Notify then
@@ -1641,7 +1821,7 @@ while true do
 				end
 			end
 			
-			if nohelmet and not PLAYER_WHITELIST[a] and not isLocalPlayer then
+			if nohelmet and not PLAYER_WHITELIST[a] then
 				d = PED.IS_PED_WEARING_HELMET(p)
 				if d then
 					if Notify then
@@ -1651,7 +1831,7 @@ while true do
 				end
 			end
 
-			if ch and not PLAYER_WHITELIST[a] and not isLocalPlayer then
+			if ch and not PLAYER_WHITELIST[a] then
 				if PED.IS_PED_IN_COVER(p) then
 					PLAYER._SET_PLAYER_HEALTH_RECHARGE_LIMIT(a, 0.01)
 					PLAYER.SET_PLAYER_HEALTH_RECHARGE_MULTIPLIER(a, 1.0)
@@ -1673,7 +1853,7 @@ while true do
 				end
 			end
 
-            if hasAWeapon(a) and noannoy and not WEAPON_WHITELIST[a] and not isLocalPlayer then
+            if hasAWeapon(a) and noannoy and not WEAPON_WHITELIST[a] then
                 if fly then
                     if Notify then
                         util.toast("Use of annoying weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nMaking them fly...")
@@ -1685,9 +1865,9 @@ while true do
                         util.toast("Use of annoying weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nMaking them stumble...")
                             util.yield(1500)
                     end
-                    if TASK.IS_PED_WALKING(p) and not PED.IS_PED_RAGDOLL(p) then
+                    if TASK.IS_PED_WALKING(p) or TASK.IS_PED_RUNNING(p) and not PED.IS_PED_RAGDOLL(p) then
                         local vector = ENTITY.GET_ENTITY_FORWARD_VECTOR(p)
-                        PED.SET_PED_TO_RAGDOLL_WITH_FALL(p, 1500, 2000, 2, vector.x, -vector.y, vector.z, 1, 0, 0, 0, 0, 0, 0)
+                        PED.SET_PED_TO_RAGDOLL_WITH_FALL(p, 1500, 2000, 2, vector.x, vector.y, vector.z, 1, 0, 0, 0, 0, 0, 0)
                         util.yield(math.random(1000, 40000))
                     end
                 elseif camp then
@@ -1753,7 +1933,7 @@ while true do
                     delete_aw(a)
                 end
             end
-            if hasSWeapon(a) and nomarksman and not WEAPON_WHITELIST[a] and not isLocalPlayer then
+            if hasSWeapon(a) and nomarksman and not WEAPON_WHITELIST[a] then
                 if fly then
                     if Notify then
                         util.toast("Use of semiauto weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nMaking them fly...")
@@ -1765,9 +1945,9 @@ while true do
                         util.toast("Use of semiauto weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nMaking them stumble...")
                             util.yield(1500)
                     end
-                    if TASK.IS_PED_WALKING(p) and not PED.IS_PED_RAGDOLL(p) then
+                    if TASK.IS_PED_WALKING(p) or TASK.IS_PED_RUNNING(p) and not PED.IS_PED_RAGDOLL(p) then
                         local vector = ENTITY.GET_ENTITY_FORWARD_VECTOR(p)
-                        PED.SET_PED_TO_RAGDOLL_WITH_FALL(p, 1500, 2000, 2, vector.x, -vector.y, vector.z, 1, 0, 0, 0, 0, 0, 0)
+                        PED.SET_PED_TO_RAGDOLL_WITH_FALL(p, 1500, 2000, 2, vector.x, vector.y, vector.z, 1, 0, 0, 0, 0, 0, 0)
                         util.yield(math.random(1000, 40000))
                     end
                 elseif camp then
@@ -1833,7 +2013,7 @@ while true do
                     delete_sw(a)
                 end
             end
-			if hasHWeapon(a) and nohw and not WEAPON_WHITELIST[a] and not isLocalPlayer then
+			if hasHWeapon(a) and nohw and not WEAPON_WHITELIST[a] then
 				if fly then
 					if Notify then
 						util.toast("Use of heavy weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nMaking them fly...")
@@ -1845,9 +2025,9 @@ while true do
                         util.toast("Use of heavy weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nMaking them stumble...")
                             util.yield(1500)
                     end
-                    if TASK.IS_PED_WALKING(p) and not PED.IS_PED_RAGDOLL(p) then
+                    if TASK.IS_PED_WALKING(p) or TASK.IS_PED_RUNNING(p) and not PED.IS_PED_RAGDOLL(p) then
                         local vector = ENTITY.GET_ENTITY_FORWARD_VECTOR(p)
-                        PED.SET_PED_TO_RAGDOLL_WITH_FALL(p, 1500, 2000, 2, vector.x, -vector.y, vector.z, 1, 0, 0, 0, 0, 0, 0)
+                        PED.SET_PED_TO_RAGDOLL_WITH_FALL(p, 1500, 2000, 2, vector.x, vector.y, vector.z, 1, 0, 0, 0, 0, 0, 0)
                         util.yield(math.random(1000, 40000))
                     end
                 elseif camp then
@@ -1914,7 +2094,7 @@ while true do
 				end
 			end
 			
-			if hasTWeapon(a) and nothrow and not WEAPON_WHITELIST[a] and not isLocalPlayer then
+			if hasTWeapon(a) and nothrow and not WEAPON_WHITELIST[a] then
 				if fly then
 					if Notify then
 						util.toast("Use of throwable weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nMaking them fly...")
@@ -1926,9 +2106,9 @@ while true do
                         util.toast("Use of throwable weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nMaking them stumble...")
                             util.yield(1500)
                     end
-                    if TASK.IS_PED_WALKING(p) and not PED.IS_PED_RAGDOLL(p) then
+                    if TASK.IS_PED_WALKING(p) or TASK.IS_PED_RUNNING(p) and not PED.IS_PED_RAGDOLL(p) then
                         local vector = ENTITY.GET_ENTITY_FORWARD_VECTOR(p)
-                        PED.SET_PED_TO_RAGDOLL_WITH_FALL(p, 1500, 2000, 2, vector.x, -vector.y, vector.z, 1, 0, 0, 0, 0, 0, 0)
+                        PED.SET_PED_TO_RAGDOLL_WITH_FALL(p, 1500, 2000, 2, vector.x, vector.y, vector.z, 1, 0, 0, 0, 0, 0, 0)
                         util.yield(math.random(1000, 40000))
                     end
                 elseif camp then
@@ -2002,7 +2182,7 @@ while true do
 --Handle Vehicle Actions
 ----------------------------------------------------------------
 
-			if not VEHICLE_WHITELIST[a] and not isLocalPlayer then
+			if not VEHICLE_WHITELIST[a] then
 				if antiToreador and isinToreador(a) or antiLazer and isInLazer(a) or antiB11 and isInB11(a) or antiMK2 and isOnMK2(a) or antiTank and isInTank(a) or antiAkula and isInAkula(a) or antiHunter and isInHunter(a) or antiSavage and isInSavage(a) or antiHydra and isInHydra(a) or antiScramjet and isInScramjet(a) or antiRCbandito and isInRC(a) or antiTank and isInRC(a) or antiDeluxo and isinDeluxo(a) and (lastReaction + delay <= util.current_time_millis()) then
 					if Kick then
 						menu.trigger_commands("kick" .. PLAYER.GET_PLAYER_NAME(a))
@@ -2190,7 +2370,7 @@ while true do
 						control_vehicle(a, function(veh)
 							VEHICLE.SET_VEHICLE_FORWARD_SPEED(veh, 250)
 							local po = ENTITY.GET_ENTITY_VELOCITY(veh)
-							ENTITY.SET_ENTITY_VELOCITY(veh, po.x, po.y, po.z + 80)
+							ENTITY.SET_ENTITY_VELOCITY(veh, po.x, po.y, po.z + 10000)
 							util.yield(30000)
 						end)
 					else

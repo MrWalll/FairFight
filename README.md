@@ -24,7 +24,7 @@ Now if they ***_still_*** try to use those things..
 
 ### Known bugs
 
-- [ ] Tase punishment missing the player
+- [ ] Stun punishment missing the player
 - [x] Firework punishment not showing effects
 
 

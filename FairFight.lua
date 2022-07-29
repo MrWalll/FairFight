@@ -20,11 +20,11 @@ local FF_logo = none
 if filesystem.exists(filesystem.resources_dir().."FF.png") then 
     FF_logo = directx.create_texture(filesystem.resources_dir().."FF.png")
 end
-local playerList = {}
+local playerList = players.list(false, true, true)
 local veh = entities.get_user_vehicle_as_pointer()
 local vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
-local vehDelay = 3500
-local weapDelay = 4000
+local vehDelay = 35000
+local weapDelay = 40000
 local fire = util.joaat("prop_beach_fire")
 local ownPed = players.user_ped()
 local HList = {
@@ -55,12 +55,6 @@ local SList = {
         [util.joaat("weapon_marksmanrifle_mk2")] = true
         }
 local loadout = {
-    [324215364] = {
-      [1] = -1657815255,
-      [2] = -1489156508,
-      [3] = 283556395,
-      ["tint"] = 3
-   },
    [3347935668] = {
       [1] = -1596416958,
       [2] = 1824470811,
@@ -68,15 +62,6 @@ local loadout = {
    },
    [741814745] = {
       ["tint"] = 0
-   },
-   [2982836145] = {
-      ["tint"] = 7
-   },
-   [1672152130] = {
-      ["tint"] = 3
-   },
-   [1119849093] = {
-      ["tint"] = 7
    },
    [2725352035] = {
       ["tint"] = 0
@@ -88,7 +73,25 @@ local loadout = {
       [4] = 776198721,
       ["tint"] = 2
    },
-    }
+   [3686625920] = {
+      [1] = 400507625,
+      [2] = -1654288262,
+      [3] = 1108334355,
+      [4] = 42685294,
+      [5] = -1243457701,
+      [6] = 48731514,
+      ["tint"] = 14
+   },
+   [2982836145] = {
+      ["tint"] = 7
+   },
+   [1119849093] = {
+      ["tint"] = 7
+   },
+   [1672152130] = {
+      ["tint"] = 3
+   },
+}
 
 --skidded from sex.lua, just adjusted it to my use. Credits to the creator (idk who it is lol)
 function logo_startup()
@@ -403,12 +406,89 @@ function isinToreador(playerID)
     end
 end
 
+function isinNightshark(playerID)
+    playerPed = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
+    local hash = util.joaat("nightshark")
+    if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) then
+        return true
+    else
+        return false
+    end
+end
+
+function isinSpeedo(playerID)
+    playerPed = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
+    local hash = util.joaat("speedo4")
+    if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) then
+        return true
+    else
+        return false
+    end
+end
+
+function isinAnnihilator(playerID)
+    playerPed = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
+    local hash = util.joaat("annihilator2")
+    if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) then
+        return true
+    else
+        return false
+    end
+end
+
+function isinVigilante(playerID)
+    playerPed = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
+    local hash = util.joaat("vigilante")
+    if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) then
+        return true
+    else
+        return false
+    end
+end
+
+function isinTampa(playerID)
+    playerPed = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
+    local hash = util.joaat("tampa3")
+    if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) then
+        return true
+    else
+        return false
+    end
+end
+
+function isinMolotok(playerID)
+    playerPed = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
+    local hash = util.joaat("molotok")
+    if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) then
+        return true
+    else
+        return false
+    end
+end
+
+function isinStarling(playerID)
+    playerPed = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
+    vehicle = PED.GET_VEHICLE_PED_IS_IN(playerPed)
+    local hash = util.joaat("starling")
+    if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) then
+        return true
+    else
+        return false
+    end
+end
+
+
 ----------------------------------------------------------------
 --Explode Vehicle
 ----------------------------------------------------------------
 
 function exp_veh(playerID)
-	local playerPed = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
 	local pos = ENTITY.GET_ENTITY_COORDS(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID))
 	local ped = PLAYER.GET_PLAYER_PED(playerID)
 	
@@ -505,8 +585,7 @@ end
 
 function emp_car(playerID)
 	local pos = ENTITY.GET_ENTITY_COORDS(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID))
-
-	FIRE.ADD_EXPLOSION(pos.x, pos.y, pos.z, 83, 10, 0, true, 0, true)
+	FIRE.ADD_EXPLOSION(pos.x, pos.y, pos.z, 65, 10, 0, true, 0)
 		util.yield(vehDelay)
 end
 
@@ -516,7 +595,7 @@ end
 
 function exp_ped(playerID)
 	local pos = ENTITY.GET_ENTITY_COORDS(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID))
-	FIRE.ADD_EXPLOSION(pos.x, pos.y, pos.z, 72, 350, 0, true, 0)
+	FIRE.ADD_EXPLOSION(pos.x, pos.y, pos.z, 72, 350, false, true, 0)
 		util.yield(weapDelay)
 end
 
@@ -542,33 +621,30 @@ function fire_exp_ped(playerID)
        WEAPON.REQUEST_WEAPON_ASSET(hash, 31, 0)
        util.yield(10)
     end
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(pos.x, pos.y, pos.z + 0.1, pos.x, pos.y, pos.z, - 0, true, hash, ped, true, true, - 1)
-		util.yield(weapDelay)
+	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(pos.x, pos.y, pos.z + 0.3, pos.x, pos.y, pos.z, 0, true, hash, 0, true, true, 1)
+	while PED.IS_PED_RAGDOLL(ped) do util.yield(weapDelay) end
 end
 
 ----------------------------------------------------------------
 --Damage Player with Stungun
 ----------------------------------------------------------------
 
-function tase_pl(playerID)
-    local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
-    local pos = ENTITY.GET_ENTITY_COORDS(ped)
-	--local hit = PED.GET_PED_BONE_COORDS(ped, 12844--[[0x796e head]], 0, 0, 0)
-	local hash = util.joaat("WEAPON_STUNGUN_MP")
+local function stun_player(ped, damage)
+    local hash = 0x3656C8C1 --stungun
     while not WEAPON.HAS_WEAPON_ASSET_LOADED(hash) do
-	   WEAPON.REQUEST_WEAPON_ASSET(hash, 31, 0)
-       util.yield(10)
+       WEAPON.REQUEST_WEAPON_ASSET(hash)
+       util.yield(20)
     end
-    --MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(pos.x, pos.y, pos.z + 5, pos.x, pos.y, pos.z - 4, 0, true, hash, players.user_ped(), false, true, - 1, ped, 0)
-	MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(pos.x, pos.y, pos.z + 1.0, pos.x, pos.y, pos.z, 1.0, false, hash, ped, true, true, - 1)
-    WEAPON.REMOVE_WEAPON_ASSET(hash)
-    util.yield(weapDelay)
+    local p_head = 0x322c
+    local stop = PED.GET_PED_BONE_COORDS(ped, p_head, 0, 0, 0)
+    local start = {}
+    start.x = stop.x - 0.2
+    start.y = stop.y
+    start.z = stop.z
+    MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(start.x, start.y, start.z, stop.x, stop.y, stop.z, damage, false, hash, 0, false, false, 1)
+    while PED.IS_PED_BEING_STUNNED(ped) do util.yield(weapDelay) end
 end
 
---[[menu.action(menu.my_root(), "TEST",{}, "Line 561", function()
-    tase_pl(players.user())
-    --PED.SET_PED_TO_RAGDOLL(players.user_ped(), 1000, -1, 0, true, true, false)
-end)]]
 ----------------------------------------------------------------
 --Delete weapons
 ----------------------------------------------------------------
@@ -679,6 +755,15 @@ function hasSWeapon(playerID)
     end
 end
 
+--[[function delete_placed_sticky(ped)
+    local pos = ENTITY.GET_ENTITY_COORDS(ped)
+    local hash = util.joaat("weapon_stickybomb")
+    if MISC.IS_PROJECTILE_TYPE_WITHIN_DISTANCE(pos.x, pos.y, pos.z, hash, 8, false) then
+        --util.toast("valid bomb")
+        WEAPON.REMOVE_ALL_PROJECTILES_OF_TYPE(hash, true)
+        --util.toast("bomb delete")
+    end
+end]]
 
 ----------------------------------------------------------------
 --Header
@@ -892,10 +977,10 @@ local plist = menu.list(menu.my_root(), "Player Options")
 		local weapons = menu.list(menu.my_root(), "Weapon Options")
 		menu.divider(weapons, "Weapon options")
 
-        local selectW = menu.list(weapons, "Weapons")
+        local selectW = menu.list(weapons, "Weapons", {}, "Deletes the weapons if no other punishment is activ.")
         menu.divider(selectW, "Gun selection")
 		local nohw = false
-		menu.toggle(selectW, "Heavy Weapons", {}, "RPG / Minigun / Homing Launcher / Widowmaker / Grenade Launcher\n\nDeletes the weapons if no other punishment is activ.", function(he)
+		menu.toggle(selectW, "Heavy Weapons", {}, "RPG / Minigun / Homing Launcher / Widowmaker / Grenade Launcher", function(he)
 			if he then
 				nohw = true
 				if Notify then
@@ -909,7 +994,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
 			end
 		end)
 		local nothrow = false
-		menu.toggle(selectW, "Throwables", {}, "Stickybomb / Granade / Proximity Mines / Molotov\n\nDeletes the weapons if no other punishment is activ.", function(he)
+		menu.toggle(selectW, "Throwables", {}, "Stickybomb / Granade / Proximity Mines / Molotov", function(he)
 			if he then
 				nothrow = true
 				if Notify then
@@ -923,7 +1008,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
 			end
 		end)
         local noannoy = false
-        menu.toggle(selectW, "Annoying", {}, "Up-n-Atomizer / Flaregun / EMP Launcher / Firework Launcher / Stun gun (mp and sp)\n\nDeletes the weapons if no other punishment is activ.", function(he)
+        menu.toggle(selectW, "Annoying", {}, "Up-n-Atomizer / Flaregun / EMP Launcher / Firework Launcher / Stun gun (mp and sp)", function(he)
             if he then
                 noannoy = true
                 if Notify then
@@ -937,7 +1022,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
             end
         end)
         local nomarksman = false
-        menu.toggle(selectW, "Semiauto", {}, "Marksman Rifle Mk2 / Marksman Rifle / Marksman Pistol / Gadget Pistol\n\nDeletes the weapons if no other punishment is activ.", function(s)
+        menu.toggle(selectW, "Semiauto", {}, "Marksman Rifle Mk2 / Marksman Rifle / Marksman Pistol / Gadget Pistol", function(s)
             if s then
                 nomarksman = true
                 if Notify then
@@ -964,7 +1049,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
         menu.divider(toxic, "Toxic")
 
         local stumble = false
-        menu.toggle(annoying, "Stumble", {}, "Makes the player stumble with a chance of falling down.", function(toggle)
+        menu.toggle(annoying, "Stumble", {}, "Makes the player stumble with a chance of falling down.\n\nMight not work on others.", function(toggle)
             if toggle then
                 stumble = true
                 if Notify then
@@ -1071,7 +1156,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
 		
 
 		local fireexplPed = false
-		menu.toggle(toxic, "Firework", {"fireexplo"}, "Firework on the Player", function(lol)
+		menu.toggle(toxic, "Firework", {"fireexplo"}, "Kills the player with a firework effect.", function(lol)
 			if lol then
 				fireexplPed = true
 				if Notify then
@@ -1086,7 +1171,7 @@ local plist = menu.list(menu.my_root(), "Player Options")
 		end)
 
 		local explodePed = false
-		menu.toggle(toxic, "Explode", {"explo"}, "Explodes the Player", function(lol)
+		menu.toggle(toxic, "Explode", {"explo"}, "Explodes the player (invisible + not audible)", function(lol)
 			if lol then
 				explodePed = true
 				if Notify then
@@ -1113,208 +1198,364 @@ local vlist = menu.list(menu.my_root(), "Vehicle Options")
 local vehlist = menu.list(vlist, "Vehicles")
 
 		menu.divider(vehlist, "Vehicles")
+        local toggleAll = false
 
 		local spec = menu.list(vehlist, "Special Cars")
+        local plane = menu.list(vehlist, "Planes")
+        local heli = menu.list(vehlist, "Helicopters")
+        local grou = menu.list(vehlist, "Ground Vehicles")
 		
 		menu.divider(spec, "Special Cars")
+        menu.divider(plane, "Planes")
+        menu.divider(heli, "Helicopters")
+        menu.divider(grou, "Ground Vehicles")
+        menu.divider(vehlist, " ")
+
+        local starling = false
+        menu.toggle(plane, "LF-22 Starling", {"starling"}, "", function(toggle)
+            if toggle then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
+                starling = true
+                if Notify then
+                    util.toast("LF-22 Starling on")
+                end
+            else
+                starling = false
+                if Notify then
+                    util.toast("LF-22 Starling off")
+                end
+            end
+        end)
+
+        local annihilator = false
+        menu.toggle(heli, "Annihilator Stealth", {"annihilator"}, "", function(toggle)
+            if toggle then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
+                annihilator = true
+                if Notify then
+                    util.toast("Annihilator Stealth on")
+                end
+            else
+                annihilator = false
+                if Notify then
+                    util.toast("Annihilator Stealth off")
+                end
+            end
+        end)
+
+        local vigilante = false
+        menu.toggle(spec, "Vigilante", {"vigilante"}, "", function(toggle)
+            if toggle then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
+                vigilante = true
+                if Notify then
+                    util.toast("Vigilante on")
+                end
+            else
+                vigilante = false
+                if Notify then
+                    util.toast("Vigilante off")
+                end
+            end
+        end)
+
+        local tampa = false
+        menu.toggle(grou, "Weaponized Tampa", {"tampa"}, "", function(toggle)
+            if toggle then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
+                tampa = true
+                if Notify then
+                    util.toast("Weaponized Tampa on")
+                end
+            else
+                tampa = false
+                if Notify then
+                    util.toast("Weaponized Tampa off")
+                end
+            end
+        end)
+
+        local molotok = false
+        menu.toggle(plane, "V-65 Molotok", {"molotok"}, "", function(toggle)
+            if toggle then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
+                molotok = true
+                if Notify then
+                    util.toast("V-65 Molotok on")
+                end
+            else
+                molotok = false
+                if Notify then
+                    util.toast("V-65 Molotok off")
+                end
+            end
+        end)
+
+        local speedo = false
+        menu.toggle(grou, "Speedo Custom", {"speedocustom"}, "", function(toggle)
+            if toggle then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
+                speedo = true
+                if Notify then
+                    util.toast("Speedo Custom on")
+                end
+            else
+                speedo = false
+                if Notify then
+                    util.toast("Speedo Custom off")
+                end
+            end
+        end)
+
+        local nightshark = false
+        menu.toggle(grou, "Nightshark", {"nightshark"}, "", function(toggle)
+            if toggle then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
+                nightshark = true
+                if Notify then
+                    util.toast("Nightshark on")
+                end
+            else
+                nightshark = false
+                if Notify then
+                    util.toast("Nightshark off")
+                end
+            end
+        end)
 
 		local antiMK2 = false
-		menu.toggle(spec, "Oppressor MK2", {"antimk2"}, "Enables/Disables the Anti MK2 feature.", function(on)
+		menu.toggle(spec, "Oppressor MK2", {"antimk2"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiMK2 = true
 				if Notify then
-					util.toast("Oppressor MK2 On")
+					util.toast("Oppressor MK2 on")
 				end
 			else
 				antiMK2 = false
 				if Notify then
-					util.toast("Oppressor MK2 Off")
+					util.toast("Oppressor MK2 off")
 				end
 			end
 		end)
 		
 		local antiScramjet = false
-		menu.toggle(spec, "Scramjet", {"antiscramjet"}, "Enables/Disables the Anti Scramjet feature.", function(on)
+		menu.toggle(spec, "Scramjet", {"antiscramjet"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiScramjet = true
 				if Notify then
-					util.toast("Scramjet On")
+					util.toast("Scramjet on")
 				end
 			else
 				antiScramjet = false
 				if Notify then
-					util.toast("Scramjet Off")
+					util.toast("Scramjet off")
 				end
 			end
 		end)
 
 		local antiDeluxo = false
-		menu.toggle(spec, "Deluxo", {"antideluxo"}, "Enables/Disables the Anti Deluxo feature.", function(on)
+		menu.toggle(spec, "Deluxo", {"antideluxo"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiDeluxo = true
 				if Notify then
-					util.toast("Deluxo On")
+					util.toast("Deluxo on")
 				end
 			else
 				antiDeluxo = false
 				if Notify then
-					util.toast("Deluxo Off")
+					util.toast("Deluxo off")
 				end
 			end
 		end)
 
 		local antiToreador = false
-		menu.toggle(spec, "Toreador", {"antitoreador"}, "Enables/Disables the Anti Toreador feature.", function(on)
+		menu.toggle(spec, "Toreador", {"antitoreador"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiToreador = true
 				if Notify then
-					util.toast("Toreador On")
+					util.toast("Toreador on")
 				end
 			else
 				antiToreador = false
 				if Notify then
-					util.toast("Toreador Off")
+					util.toast("Toreador off")
 				end
 			end
 		end)
 
-		local plane = menu.list(vehlist, "Planes")
-
-		menu.divider(plane, "Planes")
-
 		local antiLazer = false
-		menu.toggle(plane, "P-996 Lazer", {"antilazer"}, "Enables/Disables the Anti Lazer feature.", function(on)
+		menu.toggle(plane, "P-996 Lazer", {"antilazer"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiLazer = true
 				if Notify then
-					util.toast("P-996 Lazer On")
+					util.toast("P-996 Lazer on")
 				end
 			else
 				antiLazer = false
 				if Notify then
-					util.toast("P-996 Lazer Off")
+					util.toast("P-996 Lazer off")
 				end
 			end
 		end)
 
 		local antiB11 = false
-		menu.toggle(plane, "B11-Strikeforce", {"antib11"}, "Enables/Disables the Anti B11 feature.", function(on)
+		menu.toggle(plane, "B11-Strikeforce", {"antib11"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiB11 = true
 				if Notify then
-					util.toast("B11-Strikeforce On")
+					util.toast("B11-Strikeforce on")
 				end
 			else
 				antiB11 = false
 				if Notify then
-					util.toast("B11-Strikeforce Off")
+					util.toast("B11-Strikeforce off")
 				end
 			end
 		end)
 
 		local antiHydra = false
-		menu.toggle(plane, "Hydra", {"antihydra"}, "Enables/Disables the Anti Hydra feature.", function(on)
+		menu.toggle(plane, "Hydra", {"antihydra"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiHydra = true
 				if Notify then
-					util.toast("Hydra On")
+					util.toast("Hydra on")
 				end
 			else
 				antiHydra = false
 				if Notify then
-					util.toast("Hydra Off")
+					util.toast("Hydra off")
 				end
 			end
 		end)
-		local heli = menu.list(vehlist, "Helicopters")
-
-		menu.divider(heli, "Helicopters")
 
 		local antiAkula = false
-		menu.toggle(heli, "Akula", {"antiakula"}, "Enables/Disables the Anti Akula feature.", function(on)
+		menu.toggle(heli, "Akula", {"antiakula"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiAkula = true
 				if Notify then
-					util.toast("Akula On")
+					util.toast("Akula on")
 				end
 			else
 				antiAkula = false
 				if Notify then
-					util.toast("Akula Off")
+					util.toast("Akula off")
 				end
 			end
 		end)
 
 		local antiHunter = false
-		menu.toggle(heli, "Hunter", {"antihunter"}, "Enables/Disables the Anti Hunter feature.", function(on)
+		menu.toggle(heli, "Hunter", {"antihunter"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiHunter = true
 				if Notify then
-					util.toast("Hunter On")
+					util.toast("Hunter on")
 				end
 			else
 				antiHunter = false
 				if Notify then
-					util.toast("Hunter Off")
+					util.toast("Hunter off")
 				end
 			end
 		end)
 
 		local antiSavage = false
-		menu.toggle(heli, "Savage", {"antisavage"}, "Enables/Disables the Anti Savage feature.", function(on)
+		menu.toggle(heli, "Savage", {"antisavage"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiSavage = true
 				if Notify then
-					util.toast("Savage On")
+					util.toast("Savage on")
 				end
 			else
 				antiSavage = false
 				if Notify then
-					util.toast("Savage Off")
+					util.toast("Savage off")
 				end
 			end
 		end)
 
-		local grou = menu.list(vehlist, "Ground Vehicles")
-	
-		menu.divider(grou, "Ground Vehicles")
-
 		local antiTank = false
-		menu.toggle(grou, "Tanks", {"antitank"}, "Enables/Disables the Anti Tank feature. \n\nThe following vehicles are affected: \nkhanjali, minitank, rhino and apc", function(on)
+		menu.toggle(grou, "Tanks", {"antitank"}, "The following vehicles are affected: \nkhanjali, minitank, rhino and apc", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiTank = true
 				if Notify then
-					util.toast("Tank On")
+					util.toast("Tank on")
 				end
 			else
 				antiTank = false
 				if Notify then
-					util.toast("Tank Off")
+					util.toast("Tank off")
 				end
 			end
 		end)
 		
 		local antiRCbandito = false
-		menu.toggle(grou, "RC Bandito", {"antircbandito"}, "Enables/Disables the Anti Bandito feature.", function(on)
+		menu.toggle(grou, "RC Bandito", {"antircbandito"}, "", function(on)
 			if on then
+                if toggleAll then
+                    menu.trigger_commands("toggleAllveh")
+                end
 				antiRCbandito = true
 				if Notify then
-					util.toast("RC Bandito On")
+					util.toast("RC Bandito on")
 				end
 			else
 				antiRCbandito = false
 				if Notify then
-					util.toast("RC Bandito Off")
+					util.toast("RC Bandito off")
 				end
 			end
 		end)
 
-		menu.divider(vehlist, " ")
-
 		--Toggle all cars	
 
-		local toggleAll = false
-		menu.toggle(vehlist, "Toggle All", {}, "Toggle all Cars", function(on)
+		menu.toggle(vehlist, "Toggle All", {"toggleAllveh"}, "Toggle all Cars", function(on)
 			if on then
 				toggleAll = true
 				antiLazer = true
@@ -1329,8 +1570,15 @@ local vehlist = menu.list(vlist, "Vehicles")
 				antiScramjet = true
 				antiDeluxo = true
 				antiToreador = true
+                starling = true
+                annihilator = true
+                vigilante = true
+                tampa = true
+                molotok = true
+                speedo = true
+                nightshark = true
 				if Notify then
-					util.toast("Toggle All On")
+					util.toast("Toggle All on")
 				end
 			else
 				toggleAll = false
@@ -1346,8 +1594,15 @@ local vehlist = menu.list(vlist, "Vehicles")
 				antiScramjet = false
 				antiDeluxo = false
 				antiToreador = false
+                starling = false
+                annihilator = false
+                vigilante = false
+                tampa = false
+                molotok = false
+                speedo = false
+                nightshark = false
 				if Notify then
-					util.toast("Toggle All Off")
+					util.toast("Toggle All off")
 				end
 			end
 		end)
@@ -1595,12 +1850,13 @@ local contactlist = menu.list(set, "Credits")
 
 
 function playerActionsSetup(playerID)
-    menu.divider(menu.player_root(playerID), "Fair Fight")
+    menu.divider(menu.player_root(playerID), "" .. SCRIPT_NAME)      
         local otr = false
         local playerName = players.get_name(playerID)
         local p = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(playerID)
         local tools = menu.list(menu.player_root(playerID), "Tools", {}, "These options work on legit, but may not work on other modders")
         local drops = menu.list(menu.player_root(playerID), "Drops")
+
         menu.action(drops, "Health", {}, "", function()
             local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(p, 0, 1, 0)
             local healthModel = util.joaat("prop_ld_health_pack")
@@ -1902,7 +2158,9 @@ while true do
                         util.toast("Use of annoying weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nStuning them...")
                             util.yield(1500)
                     end
-                    tase_pl(a)
+                    if not PED.IS_PED_DEAD_OR_DYING(p) then
+                        stun_player(p, 1)
+                    end
                 elseif explodePed then
                     if Notify then
                         util.toast("Use of annoying weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nExploding them...")
@@ -1982,7 +2240,9 @@ while true do
                         util.toast("Use of semiauto weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nStuning them...")
                             util.yield(1500)
                     end
-                    tase_pl(a)
+                    if not PED.IS_PED_DEAD_OR_DYING(p) then
+                        stun_player(p, 1)
+                    end
                 elseif explodePed then
                     if Notify then
                         util.toast("Use of semiauto weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nExploding them...")
@@ -2062,7 +2322,9 @@ while true do
 						util.toast("Use of heavy weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nStuning them...")
 							util.yield(1500)
 					end
-					tase_pl(a)
+                    if not PED.IS_PED_DEAD_OR_DYING(p) then
+                        stun_player(p, 1)
+                    end
 				elseif explodePed then
 					if Notify then
 						util.toast("Use of heavy weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nExploding them...")
@@ -2149,8 +2411,9 @@ while true do
 						util.toast("Use of throwable weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nStuning them...")
 							util.yield(1500)
 					end
-					tase_pl(a)
-
+                    if not PED.IS_PED_DEAD_OR_DYING(p) then
+                        stun_player(p, 1)
+                    end
 				elseif explodePed then
 					if Notify then
 						util.toast("Use of throwable weapons by: " .. PLAYER.GET_PLAYER_NAME(a) .. "\nExploding them...")
@@ -2183,7 +2446,7 @@ while true do
 ----------------------------------------------------------------
 
 			if not VEHICLE_WHITELIST[a] then
-				if antiToreador and isinToreador(a) or antiLazer and isInLazer(a) or antiB11 and isInB11(a) or antiMK2 and isOnMK2(a) or antiTank and isInTank(a) or antiAkula and isInAkula(a) or antiHunter and isInHunter(a) or antiSavage and isInSavage(a) or antiHydra and isInHydra(a) or antiScramjet and isInScramjet(a) or antiRCbandito and isInRC(a) or antiTank and isInRC(a) or antiDeluxo and isinDeluxo(a) and (lastReaction + delay <= util.current_time_millis()) then
+				if starling and isinStarling(a) or annihilator and isinAnnihilator(a) or vigilante and isinVigilante(a) or tampa and isinTampa(a) or molotok and isinMolotok(a) or speedo and isinSpeedo(a) or nightshark and isinNightshark(a) or antiToreador and isinToreador(a) or antiLazer and isInLazer(a) or antiB11 and isInB11(a) or antiMK2 and isOnMK2(a) or antiTank and isInTank(a) or antiAkula and isInAkula(a) or antiHunter and isInHunter(a) or antiSavage and isInSavage(a) or antiHydra and isInHydra(a) or antiScramjet and isInScramjet(a) or antiRCbandito and isInRC(a) or antiTank and isInRC(a) or antiDeluxo and isinDeluxo(a) and (lastReaction + delay <= util.current_time_millis()) then
 					if Kick then
 						menu.trigger_commands("kick" .. PLAYER.GET_PLAYER_NAME(a))
 						if Notify then

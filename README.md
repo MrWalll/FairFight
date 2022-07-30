@@ -26,7 +26,7 @@ Now if they ***_still_*** try to use those things..
 
 - [x] Stun punishment missing the player
 - [x] Firework punishment not showing effects
-
+- [ ] OTR blip stay visible when the player leaves the lobby while otr
 
 <hr> </hr>
 

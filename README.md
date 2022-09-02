@@ -32,14 +32,8 @@ Now if they ***_still_*** try to use those things..
 
 ### How do i install it?
 
-Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/#--manual-installation).
+**_Drag and drop_** the `FairFight.lua` and the `resourses` folder in `%appdata%\Stand\Lua Scripts` 
 <br>
-In general **_place_** the `.lua` in `%appdata%\Stand\Lua Scripts` 
-<br>
-<br>
-**Startup logo install:**
-<br>
-Place the `FF.png` inside `%appdata%\Stand\Lua Scripts\resources`
-
+You never installed a lua? Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/#--manual-installation).
 
 

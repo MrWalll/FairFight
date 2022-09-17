@@ -22,14 +22,6 @@ Now if they ***_still_*** try to use those things..
 
 <hr>  </hr>
 
-### Known bugs
-
-- [x] Stun punishment missing the player
-- [x] Firework punishment not showing effects
-- [x] OTR blip stays visible when the player leaves the lobby while otr <sup> Fixed in v1.2</sup>
-
-<hr> </hr>
-
 ### How do i install it?
 
 
@@ -38,4 +30,48 @@ Now if they ***_still_*** try to use those things..
 
 You never installed a lua? Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/#--manual-installation).
 
+<hr>  </hr>
+
+<details><summary>Loadouts</summary>
+<p>
+
+#### Loadout 1
+
+- Heavy Sniper MK2 
+- Heavy Rifle
+- Combat LMG MK2
+- RPG
+- Minigun
+- Homing Launcher
+- Sticky Bomb
+
+<hr>  </hr>
+
+#### Loadout 2
+
+- Heavy Sniper MK2 
+- Special Carbine MK2 (Incendiary Rounds)
+- Combat LGM MK2 (Full Metal Jacket Rounds)
+- Pump Shotgun MK2 (Explosive Slugs)
+- Up-n-Atomizer
+- RPG
+- Minigun
+- Homing Launcher
+- Grenade Launcher
+- Sticky Bomb
+
+</p>
+</details>
+
+
+<details><summary>Known bugs</summary>
+<p>
+
+
+- [x] ~~Stun punishment missing the player~~
+- [x] ~~Firework punishment not showing effects~~
+- [x] ~~OTR blip stays visible when the player leaves the lobby while otr <sup> Fixed in v1.2</sup>~~
+
+</p>
+</details>
 

@@ -60,17 +60,6 @@ You never installed a lua? Consider reading this [tutorial](https://support-docs
 - Grenade Launcher
 - Sticky Bomb
 
-<hr>  </hr>
-
-#### Loadout 3
-
-- Heavy Sniper MK2
-- Marksman Rifle MK2
-- Special Carbine MK2 
-- RPG
-- Homing Launcher
-- Compact Grenade Launcher
-
 </p>
 </details>
 

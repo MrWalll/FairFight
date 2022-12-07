@@ -38,7 +38,7 @@ You never installed a lua? Consider reading this [tutorial](https://support-docs
 #### Loadout 1
 
 - Heavy Sniper MK2 
-- Heavy Rifle
+- Service Carbine
 - Combat LMG MK2
 - RPG
 - Minigun

@@ -1,5 +1,5 @@
 # FairFight (FF)
-A Lua to force a fair fight for stand.
+A Lua to force players to a fair fight for stand.
 
 <hr>  </hr>
 

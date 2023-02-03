@@ -63,15 +63,3 @@ You never installed a lua? Consider reading this [tutorial](https://support-docs
 </p>
 </details>
 
-
-<details><summary>Known bugs</summary>
-<p>
-
-
-- [x] ~~Stun punishment missing the player~~
-- [x] ~~Firework punishment not showing effects~~
-- [x] ~~OTR blip stays visible when the player leaves the lobby while otr <sup> Fixed in v1.2</sup>~~
-
-</p>
-</details>
-

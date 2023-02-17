@@ -1,13 +1,14 @@
-# FairFight (FF)
-A Lua, for stand, to force players to a fight fair.
+<p align='center'>
+  <img width="35%" src="https://user-images.githubusercontent.com/107513295/219794783-61b34c18-d0e5-498e-ba57-976a8e0f8ef5.png" /><br>
+</p>
 
-<hr>  </hr>
+# FairFight (FF)
 
 Players you try to fight use RPGs, minigun, MK2 or some other skilless things?
 <br>
-**Then FF is the solution.**
+**Then FF is the solution.** 🤓
 </br>
-In a matter of seconds, you can force them to fight you, with fair things. Or punish them if they don't.
+In a matter of seconds, you can force them to fight you, with fair things. And punish them if they don't.
 
 <hr>  </hr>
 

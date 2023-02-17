@@ -28,7 +28,7 @@ Now if they ***_still_*** try to use those things..
 **_Drag and drop_** the `FairFight.lua` and the `resourses folder` in `%appdata%\Stand\Lua Scripts` 
 <br>
 
-You never installed a lua? Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/#--manual-installation).
+You never installed a lua? Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/).
 
 <hr>  </hr>
 

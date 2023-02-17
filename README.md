@@ -32,7 +32,7 @@ You never installed a lua? Consider reading this [tutorial](https://support-docs
 
 <hr>  </hr>
 
-<details><summary>Loadouts</summary>
+<details><summary>LOADOUTS</summary>
 <p>
 
 #### Loadout 1

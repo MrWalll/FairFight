@@ -34,64 +34,21 @@ You never installed a lua? Consider reading this [tutorial](https://support-docs
 
 <details><summary>LOADOUTS</summary>
 <p>
-
-#### Loadout 1
-
-- Heavy Sniper MK2 
-- Service Carbine
-- Combat MG MK2
-- RPG
-- Minigun
-- Homing Launcher
-- Sticky Bomb
-
-<hr>  </hr>
-
-#### Loadout 2
-
-- Heavy Sniper MK2 
-- Special Carbine MK2 (Incendiary Rounds)
-- Combat MG MK2 (Full Metal Jacket Rounds)
-- Pump Shotgun MK2 (Explosive Slugs)
-- Up-n-Atomizer
-- RPG
-- Minigun
-- Homing Launcher
-- Grenade Launcher
-- Sticky Bomb
-
-<hr>  </hr>
-
-#### Loadout 3
-
-- Heavy Sniper MK2
-- Marksman Rifle MK2
-- Service Carbine
-- Combat MG MK2
-- Pump Shotgun MK2 (Explosive Slugs)
-- Up-n-Atomizer
-- AP Pistol
-- RPG
-- Minigun
-- Homing Launcher
-- Grenade Launcher
-- Sticky Bomb
-
-<hr>  </hr>
-
-#### Loadout 4
-
-- Heavy Sniper MK2
-- Marksman Rifle MK2
-- Service Carbine
-- Pump Shotgun MK2 (Explosive Slugs)
-- Up-n-Atomizer
-- AP Pistol
-- Railgun
-- Minigun
-- Homing Launcher
-- Grenade Launcher
-- Sticky Bomb
+  
+| Loadout 1 | Loadout 2 | Loadout 3 | Loadout 4 |
+| --- | --- | --- | --- | 
+| Heavy Sniper MK2  |  Heavy Sniper MK2  | Heavy Sniper MK2 | Heavy Sniper MK2 |
+| Service Carbine | Special Carbine MK2 (Incendiary Rounds) | Marksman Rifle MK2 | Marksman Rifle MK2  | 
+| Combat MG MK2 | Combat MG MK2 (Full Metal Jacket Rounds) | Service Carbine |Service Carbine  | 
+| RPG | Pump Shotgun MK2 (Explosive Slugs) | Combat MG MK2 | Pump Shotgun MK2 (Explosive Slugs) | 
+| Minigun | Up-n-Atomizer | Pump Shotgun MK2 (Explosive Slugs) | Up-n-Atomizer  |
+| Homing Launcher | RPG | Up-n-Atomizer | AP Pistol |
+| Sticky Bomb | Minigun | AP Pistol | Railgun  | 
+|     |  Homing Launcher | RPG | Minigun |
+|     | Grenade Launcher | Minigun | Homing Launcher | 
+|     | Sticky Bomb | Homing Launcher | Grenade Launcher | 
+|     |    | Grenade Launcher | Sticky Bomb | 
+|     |    | Sticky Bomb |    |
 
 </p>
 </details>

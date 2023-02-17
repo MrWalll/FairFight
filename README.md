@@ -4,27 +4,31 @@
 
 # FairFight (FF)
 
-Players you try to fight use RPGs, minigun, MK2 or some other skilless things?
+Players you try to fight use RPG, minigun, MK2 or some other things?
 <br>
 **Then FF is the solution.** 🤓
 </br>
-In a matter of seconds, you can force them to fight you, with fair things. And punish them if they don't.
+With a few clicks, you can force them to fight you with fair materials. And punish them if they don't.
 
 <hr>  </hr>
 
 ### What is this?
 
-Well this script is, like the name says, to fight fair. With that I mean you can do things to players that will _stop_ them from using certain gun groups, vehicles, passive mode and even _god mode_ (only works on some menus). <sub> <sup> There is more to explore :)</sup> </sub>
+Well this script is, like the name says, to fight fair and help yourself with annoying stuff for example getting killed by random NPCs or Cops. <br>
+There're multiple things you can do to players. Some are _stoping_ them from using certain gun groups, vehicles and even _god mode_ (only works on some menus).
 <br>
 Now if they ***_still_*** try to use those things..
+**You** decide what will happen by choosing between multiple punishments.
 <br>
-**You** decide what will happen by choosing between multiple punishments. 
+<br>
+But that is of corse not everything:grey_exclamation: <br>
+**There is more to explore :)** :heavy_check_mark:
 </br>
 
 <hr>  </hr>
 
 ### How do i install it?
-
+<br>
 
 **_Drag and drop_** the `FairFight.lua` and the `resourses folder` in `%appdata%\Stand\Lua Scripts` 
 <br>
@@ -35,6 +39,12 @@ You never installed a lua? Consider reading this [tutorial](https://support-docs
 
 <details><summary>LOADOUTS</summary>
 <p>
+  
+  #### Yes there are fixed Loadouts  📍
+  
+  #### No you can not give those to other players  📍
+
+  <br>
   
 | Loadout 1 | Loadout 2 | Loadout 3 | Loadout 4 |
 | --- | --- | --- | --- | 

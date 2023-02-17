@@ -2,7 +2,7 @@
   <img width="35%" src="https://user-images.githubusercontent.com/107513295/219794783-61b34c18-d0e5-498e-ba57-976a8e0f8ef5.png" /><br>
 </p>
 
-# FairFight (FF)
+# FairFight (FF) ![version](https://img.shields.io/badge/version-1.2-brigthgreen)
 
 Players you try to fight use RPG, minigun, MK2 or some other things?
 <br>
@@ -35,9 +35,9 @@ But that is of corse not everything:grey_exclamation: <br>
 
 You never installed a lua? Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/).
 
-<hr>  </hr>
+[![Button Component](https://readme-components.vercel.app/api?component=button&text=Download)](https://github.com/MrWalll/FairFight/archive/refs/heads/main.zip)
 
-<details><summary>LOADOUTS</summary>
+## Loadouts
 <p>
   
   #### Yes there are fixed Loadouts  📍

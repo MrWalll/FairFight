@@ -2,7 +2,7 @@
   <img width="35%" src="https://user-images.githubusercontent.com/107513295/219794783-61b34c18-d0e5-498e-ba57-976a8e0f8ef5.png" /><br>
 </p>
 
-# FairFight (FF) ![version](https://img.shields.io/badge/version-1.2-brigthgreen)
+# FairFight (FF) ![version](https://img.shields.io/badge/Soon-v1.2-brigthgreen)
 
 Players you try to fight use RPG, minigun, MK2 or some other things?
 <br>

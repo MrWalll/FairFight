@@ -40,7 +40,7 @@ You never installed a lua? Consider reading this [tutorial](https://support-docs
 ## Loadouts
 <p>
   
-  #### Yes there are fixed Loadouts  📍
+  #### Yes they are fixed Loadouts  📍
   
   #### No you can not give those to other players  📍
 

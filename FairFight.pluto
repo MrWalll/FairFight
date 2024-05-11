@@ -1,0 +1,1242 @@
+--[[
+    This script was created by MrWalll
+]]
+local current_version <const> = 1.2
+util.require_natives("3095a", "init")
+
+lib_dir = filesystem.scripts_dir().."/lib/fairfight/"
+if not filesystem.exists(lib_dir .. "/FF_funtions.lua") then
+    util.toast("[ERROR]\n\nRequired file not found: /lib/fairfight/FF_funtions.lua\n\n--["..SCRIPT_FILENAME.."]")
+    util.stop_script()
+end
+require("lib.fairfight.FF_funtions")
+
+----------------------------------------------------------------
+-- Updater
+----------------------------------------------------------------
+-- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
+local status, auto_updater = pcall(require, "auto-updater")
+if not status then
+    if not async_http.have_access() then
+        util.toast("Failed to install auto-updater. Internet access is disabled. To enable automatic updates, please stop the script then uncheck the `Disable Internet Access` option.")
+    else
+        local auto_update_complete = nil util.toast("Installing auto-updater...", TOAST_ALL)
+        async_http.init("raw.githubusercontent.com", "/hexarobi/stand-lua-auto-updater/main/auto-updater.lua",
+                function(raw_result, raw_headers, raw_status_code)
+                    local function parse_auto_update_result(result, headers, status_code)
+                        local error_prefix = "Error downloading auto-updater: "
+                        if status_code ~= 200 then util.toast(error_prefix..status_code, TOAST_ALL) return false end
+                        if not result or result == "" then util.toast(error_prefix.."Found empty file.", TOAST_ALL) return false end
+                        filesystem.mkdir(filesystem.scripts_dir() .. "lib")
+                        local file = io.open(filesystem.scripts_dir() .. "lib\\auto-updater.lua", "wb")
+                        if file == nil then util.toast(error_prefix.."Could not open file for writing.", TOAST_ALL) return false end
+                        file:write(result) file:close() util.toast("Successfully installed auto-updater lib", TOAST_ALL) return true
+                    end
+                    auto_update_complete = parse_auto_update_result(raw_result, raw_headers, raw_status_code)
+                end, function() util.toast("Error downloading auto-updater lib. Update failed to download.", TOAST_ALL) end)
+        async_http.dispatch() local i = 1 while (auto_update_complete == nil and i < 40) do util.yield(250) i = i + 1 end
+        if auto_update_complete == nil then error("Error downloading auto-updater lib. HTTP Request timeout") end
+        auto_updater = require("auto-updater")
+    end
+end
+if auto_updater == true then error("Invalid auto-updater lib. Please delete your Stand/Lua Scripts/lib/auto-updater.lua and try again") end
+local default_check_interval = 604800
+local auto_update_config = {
+    source_url="https://raw.githubusercontent.com/hexarobi/stand-lua-constructor/main/Constructor.lua",
+    script_relpath=SCRIPT_RELPATH,
+    switch_to_branch=selected_branch,
+    verify_file_begins_with="--",
+    check_interval=86400,
+    silent_updates=true,
+    dependencies={
+        {
+            name="inspect",
+            source_url="https://raw.githubusercontent.com/kikito/inspect.lua/master/inspect.lua",
+            script_relpath="lib/inspect.lua",
+            verify_file_begins_with="local",
+            check_interval=default_check_interval,
+            is_required=true,
+        }
+    }
+}
+if not Debug_Active then auto_updater.run_auto_update(auto_update_config) end
+
+----------------------------------------------------------------
+--Header
+----------------------------------------------------------------
+
+menu.divider(menu.my_root(), "".. SCRIPT_NAME)
+
+----------------------------------------------------------------
+--Self Opt List
+----------------------------------------------------------------
+local selflist = menu.list(menu.my_root(), "Self")
+----------------------------------------------------------------
+--Self Options
+----------------------------------------------------------------
+
+        selflist:divider("Self")
+
+        local l = loadout_1
+        local loadout_menu = selflist:textslider_stateful("Give loadout", {}, 'Gives yourself a loadout to fight with\n\nDetailed list of the loadouts on GitHub.', loadout_names, function(index, name)
+            WEAPON.REMOVE_ALL_PED_WEAPONS(ownPed, false)
+            WEAPON.SET_CAN_PED_SELECT_ALL_WEAPONS(ownPed, true)
+            switch name do
+                case "Loadout 1":
+                    l = loadout_1
+                break
+                case "Loadout 2":
+                    l = loadout_2
+                break
+                case "Loadout 3":
+                    l = loadout_3
+                break
+                case "Loadout 4":
+                    l = loadout_4
+                break
+            end
+            for w_hash, attach in pairs(l) do
+                WEAPON.GIVE_WEAPON_TO_PED(ownPed, w_hash, 10, false, true)
+                    for n, a_hash in pairs(attach) do
+                        if n ~= "tint" then
+                            WEAPON.GIVE_WEAPON_COMPONENT_TO_PED(ownPed, w_hash, a_hash)
+                            util.yield(10)
+                        end
+                    end
+                WEAPON.SET_PED_WEAPON_TINT_INDEX(ownPed, w_hash, attach["tint"])
+                WEAPON.ADD_AMMO_TO_PED(ownPed, w_hash, 9999) -- max out ammo for new weapons
+            end
+            WEAPON.SET_CURRENT_PED_WEAPON(ownPed, 0xA2719263, true) --so you dont have the last added weapon in your hands
+        end)
+
+        selflist:toggle_loop("Disable fall damage", {}, "Always land on your feet", function()
+            if PED.IS_PED_FALLING(ownPed) then
+                PED.SET_PED_CONFIG_FLAG(ownPed, 292, true) --Freeze Ped
+            end
+            if ENTITY.GET_ENTITY_HEIGHT_ABOVE_GROUND(ownPed) <= 1.4 and PED.GET_PED_CONFIG_FLAG(ownPed, 292, 0) == true then --check if flag not already false and if no longer falling (IS_PED_FALLING returns true if freezed in the air)
+                PED.SET_PED_CONFIG_FLAG(ownPed, 292, false)
+            end
+        end)
+
+        --skidded from dom736®#0001
+        local npcdisable = false
+        selflist:toggle("Disable NPC damage", {}, "", function(on)
+            npcdisable = on
+            while npcdisable do
+                PED.SET_AI_WEAPON_DAMAGE_MODIFIER(0)
+                PED.SET_AI_MELEE_WEAPON_DAMAGE_MODIFIER(0)
+                util.yield()
+            end
+                PED.RESET_AI_WEAPON_DAMAGE_MODIFIER()
+                PED.RESET_AI_MELEE_WEAPON_DAMAGE_MODIFIER()
+        end)
+        
+        selflist:toggle_loop("Automatically refill ammo", {"autoFillammo"}, "Tops up the ammo for the gun in your hands, if you run low.", function(toggle)
+            local ammotype = WEAPON.GET_PED_AMMO_TYPE_FROM_WEAPON(ownPed, WEAPON.GET_SELECTED_PED_WEAPON(ownPed))
+            local armed = WEAPON.IS_PED_ARMED(ownPed, 6) --6 returns true if you are equipped with any weapon except melee weapons.
+            local ammoleft = WEAPON.GET_PED_AMMO_BY_TYPE(ownPed, ammotype)
+            if PLAYER.IS_PLAYER_DEAD(ownUser) or not armed then util.yield(1500) end
+            if not PLAYER.IS_PLAYER_DEAD(ownUser) then
+                if armed and ammoleft <= 1 then
+                    WEAPON.SET_PED_AMMO_BY_TYPE(ownPed, ammotype, 9999)
+                end
+            end
+        end)
+
+        selflist:toggle_loop("Remove bounty", {}, "Makes sure you never have that delicious looking map blip.", function(toggle)
+            local ref = menu.ref_by_path("Online>Remove Bounty")
+            if not util.is_session_started() then
+                inform.normal_w_name("You need to go online first")
+                return
+            end
+            if players.get_bounty(ownUser) then
+                util.yield(2000)
+                ref:trigger()
+            end
+        end)
+
+        selflist:textslider("Drop Pickups", {}, "", droppables, function(index, name)
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(ownPed, 0, 1, 0)
+            switch index do
+                case 1:
+                    request_model(healthModel)
+                    OBJECT.CREATE_AMBIENT_PICKUP(2406513688, ppos.x, ppos.y, ppos.z, 1, 1, healthModel, 1, 1)
+                    OBJECT.CREATE_AMBIENT_PICKUP(2406513688, ppos.x, ppos.y, ppos.z, 1, 1, healthModel, 1, 1)
+                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(healthModel)
+                break
+                case 2:
+                    request_model(snackModel)
+                    OBJECT.CREATE_AMBIENT_PICKUP(483577702, ppos.x, ppos.y, ppos.z, 1, 30, snackModel, 1, 1)
+                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(snackModel)
+                break
+                case 3:
+                    request_model(armourModel)
+                    OBJECT.CREATE_AMBIENT_PICKUP(1274757841, ppos.x, ppos.y, ppos.z, 1, 1, armourModel, 1, 1)
+                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(armourModel)
+                break
+                case 4:
+                    request_model(chuteModel)
+                    OBJECT.CREATE_AMBIENT_PICKUP(1735599485, ppos.x, ppos.y, ppos.z, 1, 1, chuteModel, 1, 1)
+                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(chuteModel)
+                break
+            end
+        end)
+----------------------------------------------------------------
+--Lobby Opt List
+----------------------------------------------------------------
+otrPlayers = {}
+local plist = menu.list(menu.my_root(), "Lobby", {}, "")
+
+----------------------------------------------------------------
+--Session
+----------------------------------------------------------------
+		plist:divider("Session")
+
+		local fall = false
+		plist:toggle("Stop the fall damage", {}, "Toggle fall damage for everyone in the lobby\n\nWorks best close by.", function(s)
+			if s then
+				fall = true
+                for k,a in pairs(playerList) do
+                    util.create_thread(function()
+                        while fall and not LOBBY_BLACKLIST[a] do
+                            while PED.IS_PED_FALLING(PlayerPed(a)) do
+                                ENTITY.SET_ENTITY_HEALTH(PlayerPed(a), 9000)
+                                PED.CLEAR_PED_BLOOD_DAMAGE(PlayerPed(a))
+                                util.yield()
+                            end
+                        util.yield()
+                        end
+                        util.stop_thread()
+                    end)
+                end
+			else
+                fall = false
+			end
+		end)
+        plist:toggle_loop("Reveal Off Radar Players", {''}, "Shows players that hide otr with a custom blip.", function()
+            local playerList = players.list_all_with_excludes(false)
+
+            for _, playerID in ipairs(playerList) do
+                local isOTR = OTRdetection(playerID)
+
+                if isOTR then
+                    if not otrPlayers[playerID] then
+                        otrPlayers[playerID] = HUD.ADD_BLIP_FOR_ENTITY(PlayerPed(playerID))
+                    end
+
+                    SetBlipData(otrPlayers[playerID], playerID)
+               
+                else
+                    if otrPlayers[playerID] then
+                        util.remove_blip(otrPlayers[playerID])
+                        otrPlayers[playerID] = nil
+                    end
+                end
+            end
+        end, function()
+            for _, playerID in ipairs(playerList) do
+                pcall(util.remove_blip, otrPlayers[playerID])
+            end
+            otrPlayers = {}
+        end)
+
+        plist:divider("Remove Player Groups")
+
+        plist:action("Kick all Gods ", {"kickgods"}, "Note: Ignores friends", function ()
+            KickAllGods()
+        end)
+
+        plist:action("Kick and History block all gods", {"kickblockgods"}, "Note: Ignores friends", function ()
+            KickandBlockGods()
+        end)
+        
+        plist:action("Remove History blocks", {}, "This will remove the block from ALL previously kicked godmode players.", function ()
+            removeGodBlocks()
+        end)
+
+        plist:divider("Anti-Godmode")
+
+        plist:toggle_loop("Ghost Godmode Players", {}, "", function(toggle)
+            for _, playerID in ipairs(playerList) do
+                if not players.is_in_interior(playerID) then
+                    if not PED.IS_PED_DEAD_OR_DYING(PlayerPed(playerID), 1) then
+                        if players.is_godmode(playerID) then
+                            NETWORK.SET_REMOTE_PLAYER_AS_GHOST(playerID, toggle)
+                        else
+                            NETWORK.SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
+                        end
+                    end
+                end
+            end
+        end, function()
+            for _, playerID in ipairs(playerList) do
+                NETWORK.SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
+            end
+        end)
+----------------------------------------------------------------
+--Weapons
+----------------------------------------------------------------
+		local weapons = menu.list(menu.my_root(), "Weapon Options")
+		weapons:divider("Weapon options")
+
+        local selectW = weapons:list("Gun Groups", {}, "")
+        on_shoot = weapons:toggle("While shooting?", {}, "If this is toggled, the players only get punished while shooting.\nOn default, they get punished while aming and if he has ammo. ", function(toggle)
+            is_on_shoot_toggled = toggle
+        end)
+
+        selectW:divider("Gun selection")
+		hw_toggle = selectW:toggle("Heavy Weapons", {}, "RPG / Minigun / Homing Launcher / Widowmaker / Grenade Launcher / Railgun", function(he)
+			if he then
+				if inform.toggle then
+					util.toast("Heavy Weapons enabled")
+				end
+                hw_thread = util.create_thread(function()
+                    while true do
+                        util.yield(0)
+                        heavyWP()
+                    end
+                end)
+			else
+				if inform.toggle then
+					util.toast("Heavy Weapons disabled")
+				end
+                util.stop_thread(hw_thread)
+			end
+		end)
+        hw_menu_name = lang.get_string(menu.get_menu_name(hw_toggle))
+		throwabels_toggle = selectW:toggle("Throwables", {}, "Stickybomb / Granade / Proximity Mines / Molotov", function(he)
+			if he then
+				if inform.toggle then
+					util.toast("Throwables enabled")
+				end
+                throwabled_thread = util.create_thread(function()
+                    while true do
+                        util.yield(0)
+                        throwabelsWP()
+                    end
+                end)
+			else
+				if inform.toggle then
+					util.toast("Throwables disabled")
+				end
+                util.stop_thread(throwabled_thread)
+			end
+		end)
+        throwables_menu_name = lang.get_string(menu.get_menu_name(throwabels_toggle))
+        annoying_toggle = selectW:toggle("Annoying", {}, "Up-n-Atomizer / Flaregun / EMP Launcher / Firework Launcher / Stun gun (mp and sp)", function(he)
+            if he then
+                if inform.toggle then
+                    util.toast("Annoying enabled")
+                end
+                annoying_thread = util.create_thread(function()
+                    while true do
+                        util.yield(0)
+                        annoyingWP()
+                    end
+                end)
+            else
+                if inform.toggle then
+                    util.toast("Annoying disabled")
+                end
+                util.stop_thread(annoying_thread)
+            end
+        end)
+        annoying_menu_name = lang.get_string(menu.get_menu_name(annoying_toggle))
+        semiauto_toggle = selectW:toggle("Semiauto", {}, "Marksman Rifle Mk2 / Marksman Rifle", function(s)
+            if s then
+                if inform.toggle then
+                    util.toast("Semiauto enabled")
+                end
+                semiauto_thread = util.create_thread(function()
+                    while true do
+                        util.yield(0)
+                        semiautoWP()
+                    end
+                end)
+            else
+                if inform.toggle then
+                    util.toast("Semiauto disabled")
+                end
+                util.stop_thread(semiauto_thread)
+            end
+        end)
+        semiauto_menu_name = lang.get_string(menu.get_menu_name(semiauto_toggle))
+        spaceguns_toggle = selectW:toggle("Space-Guns", {}, "Unholy Hellbringer / Widowmaker / Up-n-Atomizer", function(toggle)
+            if toggle then
+                if inform.toggle then
+                    util.toast("Space-Guns enabled")
+                end
+                spaceguns_thread = util.create_thread(function()
+                    while true do
+                        util.yield(0)
+                        spacegunsWP()
+                    end
+                end)
+            else
+                if inform.toggle then
+                    util.toast("Space-Guns disabled")
+                end
+                util.stop_thread(spaceguns_thread)
+            end
+        end)
+        spaceguns_menu_name = lang.get_string(menu.get_menu_name(spaceguns_toggle))
+        shootguns_toggle = selectW:toggle("Shootguns", {}, "Pump Shotgun Mk2 / Assault Shotgun / Heavy Shotgun / Combat Shotgun / Sweeper Shotgun", function(toggle)
+            if toggle then
+                if inform.toggle then
+                    util.toast("Shootguns enabled")
+                end
+                shootguns_thread = util.create_thread(function()
+                    while true do
+                        util.yield(0)
+                        shootgunsWP()
+                    end
+                end)
+            else
+                if inform.toggle then
+                    util.toast("Shootguns disabled")
+                end
+                util.stop_thread(shootguns_thread)
+            end
+        end)
+        shootguns_menu_name = lang.get_string(menu.get_menu_name(shootguns_toggle))
+
+----------------------------------------------------------------
+--Weapon Punishments
+----------------------------------------------------------------
+	weapons:divider("Punishments")
+
+	weapons:list_select("Troll", {}, "", W_troll, 1, function (selected)
+        W_punishment = W_troll[selected][1]
+        menu.set_menu_name(w_active, "Active:  "..W_punishment)
+    end)
+
+    weapons:list_select("Toxic", {}, "", W_toxic, 1, function(selected)
+        W_punishment = W_toxic[selected][1]
+        menu.set_menu_name(w_active, "Active:  "..W_punishment)
+    end)
+
+    w_active = weapons:divider( "Active:  "..W_punishment)
+
+----------------------------------------------------------------
+--Vehicle Options List
+----------------------------------------------------------------
+
+local vlist = menu.list(menu.my_root(), "Vehicle Options")
+	vlist:divider("Vehicle Options")
+
+    vehicle_activate_toggle = vlist:toggle("Activate", {}, "1. Choose the vehicles\n2. Choose the punishment\n3. Activate", function (toggle)
+        if toggle then
+            vehicle_thread = util.create_thread(function()
+                while true do
+                    util.yield()
+                    vehicle_handle()
+                end
+            end)
+        else
+            util.stop_thread(vehicle_thread)
+        end
+        
+    end)
+
+----------------------------------------------------------------
+--Vehicles toggles
+----------------------------------------------------------------
+
+local vehlist = vlist:list("Vehicles")
+
+	    vehlist:divider("Vehicles")
+
+		local spec = menu.list(vehlist, "Special Cars")
+        local plane = menu.list(vehlist, "Planes")
+        local heli = menu.list(vehlist, "Helicopters")
+        local grou = menu.list(vehlist, "Ground Vehicles")
+
+		spec:divider("Special Cars")
+        plane:divider("Planes")
+        heli:divider("Helicopters")
+        grou:divider("Ground Vehicles")
+        vehlist:divider(" ")
+
+
+
+        antistarling = plane:toggle("LF-22 Starling", {}, "", function(toggle)
+            if toggle then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                CarToggles.STARLING["toggle"] = true
+            else
+                CarToggles.STARLING["toggle"] = false
+            end
+        end)
+        antiannihilator = heli:toggle("Annihilator Stealth", {}, "", function(toggle)
+            if toggle then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                CarToggles.ANNIHILATOR["toggle"] = true
+            else
+                CarToggles.ANNIHILATOR["toggle"] = false
+            end
+        end)
+        antivigilante = spec:toggle("Vigilante", {}, "", function(toggle)
+            if toggle then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                CarToggles.VIGILANTE["toggle"] = true
+            else
+                CarToggles.VIGILANTE["toggle"] = false
+            end
+        end)
+        antitampa = grou:toggle("Weaponized Tampa", {}, "", function(toggle)
+            if toggle then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                CarToggles.TAMPA["toggle"] = true
+            else
+                CarToggles.TAMPA["toggle"] = false
+            end
+        end)
+        antimolotok = plane:toggle("V-65 Molotok", {}, "", function(toggle)
+            if toggle then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                CarToggles.MOLOTOK["toggle"] = true
+            else
+                CarToggles.MOLOTOK["toggle"] = false
+            end
+        end)
+        antispeedocustom = grou:toggle("Speedo Custom", {}, "", function(toggle)
+            if toggle then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                CarToggles.SPEEDO["toggle"] = true                                                                                                                                                                                                                                              --[[       (.)(.)          ]]
+            else                                                                                                                                                                                                                                                                                --[[      (.____.)         ]]
+                CarToggles.SPEEDO["toggle"] = false                                                                                                                                                                                                                                             --[[        '--'           ]]
+                
+            end
+        end)
+        antinightshark = grou:toggle("Nightshark", {}, "", function(toggle)
+            if toggle then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                CarToggles.NIGHTSHARK["toggle"] = true
+            else
+                CarToggles.NIGHTSHARK["toggle"] = false
+            end
+        end)
+		antimk2 = spec:toggle("Oppressor MK2", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.OPPRESSOR2["toggle"] = true
+			else
+				CarToggles.OPPRESSOR2["toggle"] = false
+			end
+		end)
+		antiscramjet = spec:toggle("Scramjet", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.SCRAMJET["toggle"] = true
+			else
+				CarToggles.SCRAMJET["toggle"] = false
+			end
+		end)
+		antideluxo = spec:toggle("Deluxo", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.DELUXO["toggle"] = true
+			else
+				CarToggles.DELUXO["toggle"] = false
+			end
+		end)
+		antitoreador = spec:toggle("Toreador", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.TOREADOR["toggle"] = true
+			else
+				CarToggles.TOREADOR["toggle"] = false
+			end
+		end)
+		antilazer = plane:toggle("P-996 Lazer", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.LAZER["toggle"] = true
+			else
+				CarToggles.LAZER["toggle"] = false
+			end
+		end)
+		antib11 = plane:toggle("B11-Strikeforce", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.STRIKEFORCE["toggle"] = true
+			else
+				CarToggles.STRIKEFORCE["toggle"] = false
+			end
+		end)
+		antihydra = plane:toggle("Hydra", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.HYDRA["toggle"] = true
+			else
+				CarToggles.HYDRA["toggle"] = false
+			end
+		end)
+		antiakula = heli:toggle("Akula", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.AKULA["toggle"] = true
+			else
+				CarToggles.AKULA["toggle"] = false
+			end
+		end)
+		antihunter = heli:toggle("Hunter", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.HUNTER["toggle"] = true
+			else
+				CarToggles.HUNTER["toggle"] = false
+			end
+		end)
+		antisavage = heli:toggle("Savage", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.SAVAGE["toggle"] = true
+			else
+				CarToggles.SAVAGE["toggle"] = false
+			end
+		end)
+        anticonada = heli:toggle("Weaponized Conada", {}, "", function (on)
+            if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                CarToggles.CONADA["toggle"] = true
+            else
+                CarToggles.CONADA["toggle"] = false
+            end
+        end)
+        antistromberg = spec:toggle("Stromberg", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.STROMBERG["toggle"] = true
+			else
+				CarToggles.STROMBERG["toggle"] = false
+			end
+		end)
+        antiraiju = plane:toggle("F-160 Raiju", {}, "", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.RAIJU["toggle"] = true
+			else
+				CarToggles.RAIJU["toggle"] = false
+			end
+		end)
+		antitank = grou:toggle("Tanks", {}, "The following vehicles are affected: \nkhanjali, rhino and apc", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.APC["toggle"] = true
+                CarToggles.RHINO["toggle"] = true
+                CarToggles.KHANJALI["toggle"] = true
+			else
+				CarToggles.APC["toggle"] = false
+                CarToggles.RHINO["toggle"] = false
+                CarToggles.KHANJALI["toggle"] = false
+			end
+		end)
+		antirc = grou:toggle("RC Vehicles", {}, "The following vehicles are affected: \nminitank and bandito", function(on)
+			if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+				CarToggles.BANDITO["toggle"] = true
+                CarToggles.MINITANK["toggle"] = true
+			else
+				CarToggles.BANDITO["toggle"] = false
+                CarToggles.MINITANK["toggle"] = false
+			end
+		end)
+		--Toggle all cars
+		toggleAll = vehlist:toggle("Toggle All", {}, "", function(on)
+			if on then
+                for k, v in pairs(CarToggles) do
+                    CarToggles[k]["toggle"] = true
+                end
+				if inform.toggle then
+					util.toast("Toggle All on")
+				end
+			else
+                for k, v in pairs(CarToggles) do
+                    CarToggles[k]["toggle"] = false
+                end
+				if inform.toggle then
+					util.toast("Toggle All off")
+				end
+			end
+		end)
+        spec:divider(" ")
+        spec:toggle("Toggle all special cars", {}, "", function(on)
+            if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                antivigilante.value = true
+                antimk2.value = true
+                antiscramjet.value = true
+                antideluxo.value = true
+                antitoreador.value = true
+                antistromberg.value = true
+                if inform.toggle then
+                    util.toast("All special cars toggled on")
+                end
+            else
+                antivigilante.value = false
+                antimk2.value = false
+                antiscramjet.value = false
+                antideluxo.value = false
+                antitoreador.value = false
+                antistromberg.value = false
+                if inform.toggle then
+                    util.toast("All special cars toggled off")
+                end
+            end
+        end)
+        plane:divider(" ")
+        plane:toggle("Toggle all planes", {}, "", function(on)
+            if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                antistarling.value = true
+                antimolotok.value = true
+                antilazer.value = true
+                antib11.value = true
+                antihydra.value = true
+                antiraiju.value = true
+                if inform.toggle then
+                    util.toast("All planes toggled on")
+                end
+            else
+                antistarling.value = false
+                antimolotok.value = false
+                antilazer.value = false
+                antib11.value = false
+                antihydra.value = false
+                antiraiju.value = false
+                if inform.toggle then
+                    util.toast("All planes toggled off")
+                end
+            end
+        end)
+        heli:divider(" ")
+        heli:toggle("Toggle all helicopters", {}, "", function(on)
+            if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                antiannihilator.value = true
+                antiakula.value = true
+                antihunter.value = true
+                antisavage.value = true
+                anticonada.value = true
+                if inform.toggle then
+                    util.toast("All helicopters toggled on")
+                end
+            else
+                antiannihilator.value = false
+                antiakula.value = false
+                antihunter.value = false
+                antisavage.value = false
+                anticonada.value = false
+                if inform.toggle then
+                    util.toast("All helicopters toggled on")
+                end
+            end
+        end)
+        grou:divider(" ")
+        grou:toggle("Toggle all ground vehicles", {}, "", function(on)
+            if on then
+                if toggleAll.value == true then
+                    toggleAll.value = false
+                end
+                antitampa.value = true
+                antispeedocustom.value = true
+                antinightshark.value = true
+                antirc.value = true
+                antitank.value = true
+                if inform.toggle then
+                    util.toast("All ground vehicles toggled on")
+                end
+            else
+                antitampa.value = false
+                antispeedocustom.value = false
+                antinightshark.value = false
+                antirc.value = false
+                antitank.value = false
+                if inform.toggle then
+                    util.toast("All ground vehicles toggled off")
+                end
+            end
+        end)
+----------------------------------------------------------------
+--Vechile Punishments
+----------------------------------------------------------------
+vlist:divider("Punishments")
+
+	vlist:list_select("Troll", {}, "", V_troll, 1, function (selected)
+        V_punishment = V_troll[selected][1]
+        menu.set_menu_name(v_active, "Active:  "..V_punishment)
+    end)
+
+    vlist:list_select("Toxic", {}, "", V_toxic, 1, function(selected)
+        V_punishment = V_toxic[selected][1]
+        menu.set_menu_name(v_active, "Active:  "..V_punishment)
+    end)
+
+    v_active = vlist:divider("Active:  "..V_punishment)
+
+----------------------------------------------------------------
+--Settings
+----------------------------------------------------------------
+
+local set = menu.list(menu.my_root(), "Settings")
+
+set:divider("Settings")
+
+set:toggle("Toggle Notifications", {}, "Toggle Notifications like 'Player in Vehicle..'.\n\nBy default notifications are turned OFF", function(on)
+    if on then
+        inform.toggle = true
+    else
+        inform.toggle = false
+    end
+end, Debug_Active)
+
+set:toggle("Effect yourself?", {}, "If toggled you will be effected by the punishments.", function(toggle)
+    if toggle then
+        playerList = players.list_all_with_excludes(true)
+    else
+        playerList = players.list_all_with_excludes(false)
+    end
+end, Debug_Active)
+
+set:action("Exclude others", {}, "FF uses Stands Excludes so this is a simple redirect to 'Players>All Players>Excludes'", function ()
+    local ref = menu.ref_by_path("Players>All Players>Excludes")
+    ref:trigger()
+end)
+
+local blacklist_root = set:list('Blacklist players', {}, "Manage blacklist for all players")
+local lobby_root = blacklist_root:list("Lobby")
+local weapon_root = blacklist_root:list("Weapon options")
+local vehicle_root = blacklist_root:list("Vehicle options")
+players.add_command_hook(function(playerID)
+    if not menu.ref_by_rel_path(lobby_root, PlayerName(playerID)):isValid() then
+        BLACKLIST_TOGGLED_L[playerID] = lobby_root:action(PlayerName(playerID), {}, "", function()
+            if not LOBBY_BLACKLIST[playerID] then
+                if inform.toggle then
+                    inform.normal_w_name(PlayerName(playerID) .. " is now on the blacklist")
+                end
+                LOBBY_BLACKLIST[playerID] = true
+                menu.set_menu_name(BLACKLIST_TOGGLED_L[playerID], PlayerName(playerID).." [BLACKLISTED]")
+            else
+                menu.set_menu_name(BLACKLIST_TOGGLED_L[playerID], PlayerName(playerID))
+                LOBBY_BLACKLIST[playerID] = nil
+            end
+        end)
+    end
+    if not menu.ref_by_rel_path(weapon_root, PlayerName(playerID)):isValid() then
+        BLACKLIST_TOGGLED_W[playerID] = weapon_root:action(PlayerName(playerID), {}, "", function()
+            if not WEAPON_BLACKLIST[playerID] then
+                if inform.toggle then
+                    inform.normal_w_name(PlayerName(playerID) .. " is now on the blacklist")
+                    end
+                WEAPON_BLACKLIST[playerID] = true
+                menu.set_menu_name(BLACKLIST_TOGGLED_W[playerID], PlayerName(playerID).." [BLACKLISTED]")
+            else
+                menu.set_menu_name(BLACKLIST_TOGGLED_W[playerID], PlayerName(playerID))
+                WEAPON_BLACKLIST[playerID] = nil
+            end
+        end)
+    end
+    if not menu.ref_by_rel_path(vehicle_root, PlayerName(playerID)):isValid() then
+        BLACKLIST_TOGGLED_V[playerID] = vehicle_root:action(PlayerName(playerID), {}, "", function(on_click)
+            if not VEHICLE_BLACKLIST[playerID] then
+                if inform.toggle then
+                    inform.normal_w_name(PlayerName(playerID) .. " is now on the blacklist")
+                end
+                VEHICLE_BLACKLIST[playerID] = true
+                menu.set_menu_name(BLACKLIST_TOGGLED_V[playerID], PlayerName(playerID).." [BLACKLISTED]")
+            else
+                menu.set_menu_name(BLACKLIST_TOGGLED_V[playerID], PlayerName(playerID))
+                VEHICLE_BLACKLIST[playerID] = nil
+            end
+        end)
+    end
+end)
+
+players.on_leave(function(playerID, name)
+    if menu.ref_by_rel_path(lobby_root, name):isValid() then
+        BLACKLIST_TOGGLED_L[playerID]:delete()
+        LOBBY_BLACKLIST[playerID] = nil
+    end
+    if menu.ref_by_rel_path(weapon_root, name):isValid() then
+        BLACKLIST_TOGGLED_W[playerID]:delete()
+        WEAPON_BLACKLIST[playerID] = nil
+    end
+    if menu.ref_by_rel_path(vehicle_root, name):isValid() then
+        BLACKLIST_TOGGLED_V[playerID]:delete()
+        VEHICLE_BLACKLIST[playerID] = nil
+    end
+end)
+
+set:divider("Adjustments")
+
+tireP = set:list("Tire")
+tireP:divider("Tire")
+tireP:slider("Delay (in seconds)", {"tdelay"}, "", 5, 150, punishmentDelays["Tires"], 5, function(value) punishmentDelays["Tires"] = value end)
+tireP:textslider_stateful("Which Tire/s?", {}, "", tires, function (name)
+    wheel = tires[name]
+end)
+
+partP = set:list("Lose parts")
+partP:divider("Lose Parts")
+partP:slider("Delay (in seconds)", {"losedelay"}, "", 5, 150, punishmentDelays["Lose Parts"], 5, function(value) punishmentDelays["Lose Parts"] = value end)
+partP:textslider_stateful("What Part/s to lose?", {}, "Note: Wheels will randomly choose wheels to detach", parts_table, function(name)
+    part = parts_table[name]
+end)
+
+AnimalP = set:list("Animal attack")
+AnimalP:divider("Animal attack")
+AnimalP:toggle("Godmode?", {}, "Toggles godmode for the attacking animal.", function (toggle)
+    animal_godmode = toggle
+end)
+AnimalP:list_select("Spawn location", {}, "", animal_attack_options, 1, function(index)
+    switch index do
+        case 1:
+            animal_space = {y = 0, x = -10, z = 0}
+        break
+        case 2:
+            animal_space = {y = 0, x = 10, z = 0}
+        break
+        case 3:
+            animal_space = {y = 10, x = 0, z =  0}
+        break
+        case 4:
+            animal_space = {y = -10, x = 0, z = 0}
+        break
+    end
+end)
+AnimalP:list_select("Animal", {}, "", animal_attack_models, 1, function(name)
+    animal = "a_c_"..animal_attack_models[name]
+    DisplayAnimalName = animal_attack_models[name]
+end)
+
+set:toggle("Stunning Kills", {}, "If toggled players who are stunned will also die", function(toggle)
+    if toggle then
+        stun_kills = true
+    else
+        stun_kills = false
+    end
+end)
+
+set:divider("Other Delays")
+local vDelay
+local wDelay
+local wcDelay
+set:list_select("Show", {}, "", delays, 1, function (index)
+    switch index do
+        case 1:
+            menu.set_visible(vDelay, true)
+            menu.set_visible(wDelay, false)
+            menu.set_visible(wcDelay, false)
+        break
+        case 2:
+            menu.set_visible(vDelay, false)
+            menu.set_visible(wDelay, true)
+            menu.set_visible(wcDelay, false)
+        break
+        case 3:
+            menu.set_visible(vDelay, false)
+            menu.set_visible(wDelay, false)
+            menu.set_visible(wcDelay, true)
+        break
+    end
+end)
+
+wDelay = set:slider("Weapon delay (in sec)", {"wdelay"}, "", 20, 300, weapDelay, 5, function(value) weapDelay = value end) menu.set_visible(wDelay, false)
+vDelay = set:slider("Vehicle delay (in sec)", {"vdelay"}, "", 20, 300, vehDelay, 5, function(value) vehDelay = value end) menu.set_visible(vDelay, true)
+wcDelay = set:slider("Window crush delay (in sec)", {"wdelay"}, "", 5, 150, punishmentDelays["Window Crush"], 5, function(value) punishmentDelays["Window Crush"] = value end) menu.set_visible(wcDelay, false)
+
+menu.divider(menu.my_root(), "Script Info")
+
+local misc_list = menu.list(menu.my_root(), "Misc")
+
+local Credit_list = misc_list:list("Credits")
+Credit_list:hyperlink("scriptcat", "https://github.com/Keramis/", "Godmode check")
+Credit_list:hyperlink("Jerry", "https://discord.gg/QzqBdHQC9S", "Some stuff for Reveal Off Radar")
+Credit_list:hyperlink("Dom736", "https://discordapp.com/users/601123654998163475", "NPC damage disable")
+--Credit_list:hyperlink("Davus", "https://discordapp.com/users/413003042439430144", "Give loadout")
+Credit_list:hyperlink("Prims", "https://discordapp.com/users/771202154009985064", "Kill Godmode Player and remove player godmode")
+Credit_list:hyperlink("Lance", "https://github.com/xSetrox/", "Ghost Player")
+Credit_list:hyperlink("Acjoker", "https://discord.com/invite/fn4uBbFNnA" ,"Inspiration for Passive Roadkill (+ copyed stuff from his Script)")
+
+menu.readonly(menu.my_root(), "Version", current_version)
+misc_list:readonly("Made by ", "MrWalll")
+misc_list:hyperlink("GitHub", "https://github.com/MrWalll", "")
+local loadouts_hyperlink = misc_list:hyperlink("Loadouts", "https://github.com/MrWalll/FairFight/blob/main/README.md#loadouts", "")
+misc_list:action("Check for Updates", {}, "", function (on_click)
+    check_updates()
+end)
+
+root_test = menu.action(menu.my_root(), "Test", {}, "", function ()
+    --local count = memory.read_int(memory.script_global(23711 + 5822)) -- Global_23711.f_5821    Global_23711.f_1616[Global_23711.f_5823]   Global_23711.f_5678[1] == 23711 + 5678 + 1 + 1  Global_2710116 = 1
+    --util.log(PED.GET_PED_MAX_HEALTH(ownPed) + PED.GET_PED_ARMOUR(ownPed))
+    --memory.write_int(memory.script_global(23711+5678+1+1), 1)
+    --util.log(count)
+    --util.trigger_script_event(1 << playerID, {800157557, players.user(), 225624744, math.random(0, 9999)})
+    --HUD.SET_BLIP_PRIORITY(HUD.GET_MAIN_PLAYER_BLIP_ID(), 100)
+    --local scan = memory.scan("0000000000000020")
+    --util.toast(scan, 9)
+    util.toast(PED.IS_PED_SHOOTING(ownPed))
+end)
+if Debug_Active then root_test.visible = true else root_test.visible = false end
+
+----------------------------------------------------------------
+--Player List Options
+----------------------------------------------------------------
+local passive
+local triggerRaid
+local Single_otr = {}
+function playerActionsSetup(playerID)
+    local playerroot = menu.player_root(playerID)
+    local Pped = PlayerPed(playerID)
+    passive = menu.ref_by_path("Players>"..PlayerName2(playerID)..">Trolling>Block Passive Mode")
+    triggerRaid = menu.ref_by_path("Players>"..PlayerName2(playerID)..">Trolling>Trigger Business Raid")
+    playerroot:divider("" .. SCRIPT_NAME)
+
+    player_test = menu.action(playerroot, "Test", {}, "", function ()
+        roadkill_player(playerID)
+    end)
+    if Debug_Active then player_test.visible = true else player_test.visible = false end
+
+        local ghost = {}
+        local Gmod_tools = playerroot:list("Godmode-Tools", {}, "")
+        local passive_tools = playerroot:list("Passive Mode-Tools", {}, "")
+        local usefull = playerroot:list("Usefull", {}, "")
+
+        passive_tools:action("Remove Passive", {}, "Blocked by most menus.\n Will trigger a business raid", function()
+            if is_player_passive(playerID) then 
+                triggerRaid:trigger()
+            end
+        end)
+
+        passive_tools:toggle("Block Passive Mode", {}, "This is just like the one in Stand. Only duplicated here for better accessibility.", function(toggle)
+            if toggle then
+                passive.value = toggle
+            else
+                passive.value = false
+            end
+        end, passive.value)
+
+        passive_tools:list_action("Kill Passive Player", {}, "Kill players in passive mode.\nBlocked by most menus.", {
+            {"Snowball", {}, "Works indoors too\nDoesn't work if "..PlayerName(playerID).." is in a Vehicle"}, 
+            {"Stun", {}, "Works indoors too"}, {"Roadkill", {}, $"Will run {PlayerName(playerID)} over by NPC Cars (might not work in every area)"}}, function (index, name)
+            switch index do
+                case 2:
+                    if is_player_passive(playerID) then
+                        stun_ped(playerID, 1000)
+                    else
+                        util.toast(PlayerName(playerID)" is already dead.")
+                    end
+                break
+                case 1:
+                    if PlayerVehicle(PlayerPed(playerID)) ~= 0 then
+                        inform.normal_w_name("Does not work while "..PlayerName(playerID).." is in a vehicle")
+                        break
+                    end
+                    if is_player_passive(playerID) then
+                        snowball_player(playerID, 1000)
+                    else
+                        util.toast(PlayerName(playerID)" is already dead.")
+                    end
+                break
+                case 3: --inspired by AcjokerScript's Vehicular Assault
+                    if is_player_passive(playerID) then
+                        roadkill_player(playerID)
+                        break
+                    end
+                end
+        end)
+
+        usefull:textslider("Drop Pickups", {}, "", droppables, function(index, name)
+            local ppos = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PlayerPed(playerID), 0, 1, 0)
+            switch index do
+                case 1:
+                    request_model(healthModel)
+                    OBJECT.CREATE_AMBIENT_PICKUP(2406513688, ppos.x, ppos.y, ppos.z, 1, 1, healthModel, 1, 1)
+                    OBJECT.CREATE_AMBIENT_PICKUP(2406513688, ppos.x, ppos.y, ppos.z, 1, 1, healthModel, 1, 1)
+                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(healthModel)
+                break
+                case 2:
+                    request_model(snackModel)
+                    OBJECT.CREATE_AMBIENT_PICKUP(483577702, ppos.x, ppos.y, ppos.z, 1, 30, snackModel, 1, 1)
+                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(snackModel)
+                break
+                case 3:
+                    request_model(armourModel)
+                    OBJECT.CREATE_AMBIENT_PICKUP(1274757841, ppos.x, ppos.y, ppos.z, 1, 1, armourModel, 1, 1)
+                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(armourModel)
+                break
+                case 4:
+                    request_model(chuteModel)
+                    OBJECT.CREATE_AMBIENT_PICKUP(1735599485, ppos.x, ppos.y, ppos.z, 1, 1, chuteModel, 1, 1)
+                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(chuteModel)
+                break
+            end
+        end)
+        ghost[playerID] = usefull:toggle("Ghost Player", {}, "", function(toggle)
+            if playerID ~= ownUser then
+                NETWORK.SET_REMOTE_PLAYER_AS_GHOST(playerID, toggle)
+            else
+                inform.normal_w_name("Not possible on yourself.")
+                ghost[playerID].value = false
+                NETWORK.SET_REMOTE_PLAYER_AS_GHOST(playerID, false)
+            end
+        end)
+
+        Gmod_tools:action("Godmode Check", {"godcheck"}, "", function()
+            if players.is_godmode(playerID) and not players.is_in_interior(playerID) then
+                    util.toast(players.get_name(playerID) .. " is in godmode!")
+            elseif (players.is_in_interior(playerID)) then
+                    util.toast(players.get_name(playerID) .. " is in an interior!")
+            else
+                    util.toast(players.get_name(playerID) .. " is not in godmode!")
+            end
+        end)
+        --[PRISMS GODMODE kill]
+        Gmod_tools:action("Kill Godmode Player", {"killgodmode"}, "Blocked by some menus\n\nNote: this will not work if "..PlayerName(playerID).." has no ragdoll on", function()
+            local pos = EntityCoords(PlayerPed(playerID))
+            pos.z = pos.z + 3
+
+            local khanjali = util.joaat("khanjali")
+            STREAMING.REQUEST_MODEL(khanjali)
+            while not STREAMING.HAS_MODEL_LOADED(khanjali) do
+                util.yield()
+            end
+
+            if TASK.IS_PED_STILL(PlayerPed(playerID)) then
+                distance = 0
+            elseif not TASK.IS_PED_STILL(PlayerPed(playerID)) then
+                distance = 3
+            elseif TASK.IS_PED_RUNNING(PlayerPed(playerID)) then
+                distance = 4.5
+            end
+
+            local vehicle1 = entities.create_vehicle(khanjali, ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PlayerPed(playerID), 0, distance, 3), ENTITY.GET_ENTITY_HEADING(PlayerPed(playerID)))
+            local vehicle2 = entities.create_vehicle(khanjali, pos, 0)
+            local vehicle3 = entities.create_vehicle(khanjali, pos, 0)
+            local vehicle4 = entities.create_vehicle(khanjali, pos, 0)
+
+            NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(vehicle1)
+            NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(vehicle2)
+            NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(vehicle3)
+            NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(vehicle4)
+
+            ENTITY.ATTACH_ENTITY_TO_ENTITY(vehicle2, vehicle1, 0.0, 0.0, 3.0, v3(), -180.0, 0, false, true, false, 0, true, false)
+            ENTITY.ATTACH_ENTITY_TO_ENTITY(vehicle3, vehicle1, 0.0, 3.0, 3.0, v3(), -180.0, 0, false, true, false, 0, true, false)
+            ENTITY.ATTACH_ENTITY_TO_ENTITY(vehicle4, vehicle1, 0.0, 3.0, 0.0, v3(), 0.0, 0, false, true, false, 0, true, false)
+            ENTITY.SET_ENTITY_VISIBLE(vehicle1, false)
+            local vel = ENTITY.GET_ENTITY_VELOCITY(vel)
+            ENTITY.SET_ENTITY_VELOCITY(vehicle1, vel['x'], vel['y'], -30.0)
+            util.yield(7500)
+            entities.delete_by_handle(vehicle1)
+        end)
+
+        local nogod
+        nogod = Gmod_tools:toggle_loop("Remove Player Godmode", {"nogod"}, "Blocked by most menus.", function ()
+            if PED.IS_PED_DEAD_OR_DYING(PlayerPed(playerID)) then
+                nogod.value = false
+                util.toast($"{PlayerName(playerID)} is not alife")
+            end
+            if not PED.IS_PED_DEAD_OR_DYING(PlayerPed(playerID)) then
+                util.trigger_script_event(1 << playerID, {800157557, players.user(), 225624744, math.random(0, 9999)})
+            end
+        end)
+
+        Gmod_tools:toggle_loop("Remove Vehicle Godmode", {}, "Blocked by most menus.", function ()
+            local veh = control_vehicle(PlayerVehicle(PlayerPed(playerID)))
+            if PED.IS_PED_IN_ANY_VEHICLE(PlayerPed(playerID), false) and not PED.IS_PED_DEAD_OR_DYING(PlayerPed(playerID)) then
+                ENTITY.SET_ENTITY_CAN_BE_DAMAGED(veh, true)
+                ENTITY.SET_ENTITY_INVINCIBLE(veh, false)
+                ENTITY.SET_ENTITY_PROOFS(veh, false, false, false, false, false, 0, 0, false)
+            end
+        end)
+
+        local donthide = {}
+        donthide[playerID] = usefull:toggle_loop('Stop hiding', {}, 'Reveals '.. PlayerName(playerID) ..'s possition on the map. While off the radar', function()
+            if playerID == ownUser then inform.normal_w_name("Not possible on yourself") donthide[playerID].value = false end
+
+            local isOTR = OTRdetection(playerID)
+            if isOTR then
+                if not Single_otr[playerID] then
+                    Single_otr[playerID] = HUD.ADD_BLIP_FOR_ENTITY(PlayerPed(playerID))
+                end
+
+                SetBlipData(Single_otr[playerID], playerID)
+
+            else
+                if Single_otr[playerID] then
+                    util.remove_blip(Single_otr[playerID])
+                    Single_otr[playerID] = nil
+                end
+            end
+        end, function()
+            if Single_otr[playerID] then
+                util.remove_blip(Single_otr[playerID])
+                Single_otr[playerID] = nil
+            end
+        end)
+        playerroot:divider("")
+end
+
+players.on_leave(function(playerID)
+    if otrPlayers[playerID] then
+        util.remove_blip(otrPlayers[playerID])
+        otrPlayers[playerID] = nil
+    elseif Single_otr[playerID] then
+        util.remove_blip(Single_otr[playerID])
+        Single_otr[playerID] = nil
+    end
+end)
+
+players.on_join(playerActionsSetup)
+players.dispatch_on_join()

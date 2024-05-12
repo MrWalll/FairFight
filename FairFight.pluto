@@ -1241,7 +1241,6 @@ function playerActionsSetup(playerID)
                 Single_otr[playerID] = nil
             end
         end)
-        playerroot:divider("")
 end
 
 players.on_leave(function(playerID)

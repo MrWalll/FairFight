@@ -50,7 +50,7 @@ local auto_update_config = {
     dependencies={
         {
             name="FF_Functions",
-            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/lib/FairFight/FF_Funtions.lua",
+            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/lib/FairFight",
             script_relpath="lib/FairFight/FF_Functions.lua",
             verify_file_begins_with="--FUNCTIONS",
             check_interval=default_check_interval,
@@ -58,7 +58,7 @@ local auto_update_config = {
         },
         {
             name="FF_Tabels",
-            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/lib/FairFight/FF_Tabels.lua",
+            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/lib/FairFight",
             script_relpath="lib/FairFight/FF_Tabels.lua",
             verify_file_begins_with="--TABELS",
             check_interval=default_check_interval,
@@ -66,7 +66,7 @@ local auto_update_config = {
         },
         {
             name="FF_Logo",
-            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/blob/main/resources/FF.png",
+            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/resources/FF.png",
             script_relpath="resources/FairFight/FF_Logo.png",
             check_interval=default_check_interval,
         }

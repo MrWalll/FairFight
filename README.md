@@ -2,7 +2,7 @@
   <img width="35%" src="https://user-images.githubusercontent.com/107513295/219794783-61b34c18-d0e5-498e-ba57-976a8e0f8ef5.png" /><br>
 </p>
 
-# FairFight (FF) ![version](https://img.shields.io/badge/Eventually-v1.2-brigthgreen)
+# FairFight (FF) ![version](https://img.shields.io/badge/Beta-v1.2-brigthgreen)
 
 Players you try to fight use RPG, minigun, MK2 or some other things?
 <br>
@@ -30,7 +30,7 @@ But that is of corse not everything:grey_exclamation: <br>
 ### How do i install it?
 <br>
 
-**_Drag and drop_** the `FairFight.lua` and the `resourses folder` in `%appdata%\Stand\Lua Scripts` 
+**_Drag and drop_** the `FairFight.pluto` in `%appdata%\Stand\Lua Scripts` upon starting the Script it should download and install all needed Files
 <br>
 
 You never installed a lua? Consider reading this [tutorial](https://support-docs.stand.gg/installing-luas/).
@@ -38,6 +38,7 @@ You never installed a lua? Consider reading this [tutorial](https://support-docs
 [![Button Component](https://readme-components.vercel.app/api?component=button&text=Download)](https://github.com/MrWalll/FairFight/archive/refs/heads/main.zip)
 
 ## Loadouts
+<sup>Will be added later </sup> ![version](https://img.shields.io/badge/Probably-v1.3-orange)
 <p>
   
   #### Yes they are fixed Loadouts  📍

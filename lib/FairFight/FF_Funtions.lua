@@ -101,10 +101,6 @@ end
 
 --//============================Debug Mode============================\\
 Debug_Active = false
-if Debug_Active then
-    inform.toggle = true
-    playerList = players.list_all_with_excludes(true)
-end
 --//============================Debug Mode============================\\
 
 
@@ -628,7 +624,10 @@ end
 ----------------------------------------------------------------
 local function emp_shock_player(playerID)
     local pos = EntityCoords(PlayerPed(playerID))
-    FIRE.ADD_EXPLOSION(pos.x, pos.y, pos.z, 83, 100.0, false, true, 0.0, false)
+    for i = -1.5, 1.5, 0.5 do
+        FIRE.ADD_EXPLOSION(pos.x, pos.y, pos.z + i, 83, 1000, false, true, 0.0, false)
+        util.yield(250)
+    end
 end
 ----------------------------------------------------------------
 --EXPLODE PLAYER (NOT BLAIMED)

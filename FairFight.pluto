@@ -1020,6 +1020,7 @@ Credit_list:hyperlink("Dom736", "https://discordapp.com/users/601123654998163475
 --Credit_list:hyperlink("Davus", "https://discordapp.com/users/413003042439430144", "Give loadout")
 Credit_list:hyperlink("Prims", "https://discordapp.com/users/771202154009985064", "Kill Godmode Player and remove player godmode")
 Credit_list:hyperlink("Lance", "https://github.com/xSetrox/", "Ghost Player")
+Credit_list:hyperlink("Hexarobi", "https://github.com/hexarobi/stand-lua-auto-updater", "Auto-Updater")
 Credit_list:hyperlink("Acjoker", "https://discord.com/invite/fn4uBbFNnA" ,"Inspiration for Passive Roadkill (+ copyed stuff from his Script)")
 
 menu.readonly(menu.my_root(), "Version", current_version)

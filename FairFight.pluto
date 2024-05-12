@@ -46,7 +46,7 @@ local auto_update_config = {
     script_relpath=SCRIPT_RELPATH,
     verify_file_begins_with="--[[",
     check_interval=86400,
-    silent_updates=true,
+    silent_updates=false,
     dependencies={
         {
             name="FF_Functions",

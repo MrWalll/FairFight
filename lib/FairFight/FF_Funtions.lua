@@ -1,4 +1,3 @@
-
 --FUNCTIONS FOR VERSION 1.2 OF FAIRFIGHT
 ----------------------------------------------
 

@@ -90,7 +90,7 @@ local selflist = menu.list(menu.my_root(), "Self")
 
         selflist:divider("Self")
 
-        local l = loadout_1
+        --[[local l = loadout_1
         local loadout_menu = selflist:textslider_stateful("Give loadout", {}, 'Gives yourself a loadout to fight with\n\nDetailed list of the loadouts on GitHub.', loadout_names, function(index, name)
             WEAPON.REMOVE_ALL_PED_WEAPONS(ownPed, false)
             WEAPON.SET_CAN_PED_SELECT_ALL_WEAPONS(ownPed, true)
@@ -120,7 +120,7 @@ local selflist = menu.list(menu.my_root(), "Self")
                 WEAPON.ADD_AMMO_TO_PED(ownPed, w_hash, 9999) -- max out ammo for new weapons
             end
             WEAPON.SET_CURRENT_PED_WEAPON(ownPed, 0xA2719263, true) --so you dont have the last added weapon in your hands
-        end)
+        end)]]
 
         selflist:toggle_loop("Disable fall damage", {}, "Always land on your feet", function()
             if PED.IS_PED_FALLING(ownPed) then

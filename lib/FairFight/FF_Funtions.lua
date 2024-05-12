@@ -1,4 +1,3 @@
-
 --FUNCTIONS FOR VERSION 1.2 OF FAIRFIGHT
 ----------------------------------------------
 
@@ -47,10 +46,10 @@ local BlockGodsFile = resources_dir.."BlockedPlayers.lua"
 --require("resources.fairfight.FF_Loadouts")
 
 if not filesystem.exists(lib_dir.."\\FF_Tabels.lua") then
-    util.toast("[ERROR]\n\nRequired file not found: /lib/fairfight/FF_Tabels.lua\n\n--["..SCRIPT_FILENAME.."]")
+    util.toast("[ERROR]\n\nRequired file not found: /lib/FairFight/FF_Tabels.lua\n\n--["..SCRIPT_FILENAME.."]")
     util.stop_script()
 end
-require("lib.fairfight.FF_Tabels")
+require("lib.FairFight.FF_Tabels")
 animal = "a_c_"..animal_attack_models[1]
 DisplayAnimalName = animal_attack_models[1]
 

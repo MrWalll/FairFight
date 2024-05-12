@@ -46,7 +46,7 @@ local auto_update_config = {
     script_relpath=SCRIPT_RELPATH,
     verify_file_begins_with="--[[",
     check_interval=86400,
-    silent_updates=true,
+    silent_updates=false,
     dependencies={
         {
             name="FF_Functions",
@@ -90,7 +90,7 @@ local selflist = menu.list(menu.my_root(), "Self")
 
         selflist:divider("Self")
 
-        local l = loadout_1
+        --[[local l = loadout_1
         local loadout_menu = selflist:textslider_stateful("Give loadout", {}, 'Gives yourself a loadout to fight with\n\nDetailed list of the loadouts on GitHub.', loadout_names, function(index, name)
             WEAPON.REMOVE_ALL_PED_WEAPONS(ownPed, false)
             WEAPON.SET_CAN_PED_SELECT_ALL_WEAPONS(ownPed, true)
@@ -120,7 +120,7 @@ local selflist = menu.list(menu.my_root(), "Self")
                 WEAPON.ADD_AMMO_TO_PED(ownPed, w_hash, 9999) -- max out ammo for new weapons
             end
             WEAPON.SET_CURRENT_PED_WEAPON(ownPed, 0xA2719263, true) --so you dont have the last added weapon in your hands
-        end)
+        end)]]
 
         selflist:toggle_loop("Disable fall damage", {}, "Always land on your feet", function()
             if PED.IS_PED_FALLING(ownPed) then
@@ -1020,6 +1020,7 @@ Credit_list:hyperlink("Dom736", "https://discordapp.com/users/601123654998163475
 --Credit_list:hyperlink("Davus", "https://discordapp.com/users/413003042439430144", "Give loadout")
 Credit_list:hyperlink("Prims", "https://discordapp.com/users/771202154009985064", "Kill Godmode Player and remove player godmode")
 Credit_list:hyperlink("Lance", "https://github.com/xSetrox/", "Ghost Player")
+Credit_list:hyperlink("Hexarobi", "https://github.com/hexarobi/stand-lua-auto-updater", "Auto-Updater")
 Credit_list:hyperlink("Acjoker", "https://discord.com/invite/fn4uBbFNnA" ,"Inspiration for Passive Roadkill (+ copyed stuff from his Script)")
 
 menu.readonly(menu.my_root(), "Version", current_version)
@@ -1240,7 +1241,6 @@ function playerActionsSetup(playerID)
                 Single_otr[playerID] = nil
             end
         end)
-        playerroot:divider("")
 end
 
 players.on_leave(function(playerID)

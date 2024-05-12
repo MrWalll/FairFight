@@ -42,20 +42,33 @@ end
 if auto_updater == true then error("Invalid auto-updater lib. Please delete your Stand/Lua Scripts/lib/auto-updater.lua and try again") end
 local default_check_interval = 604800
 local auto_update_config = {
-    source_url="https://raw.githubusercontent.com/hexarobi/stand-lua-constructor/main/Constructor.lua",
+    source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/FairFight.pluto",
     script_relpath=SCRIPT_RELPATH,
-    switch_to_branch=selected_branch,
-    verify_file_begins_with="--",
+    verify_file_begins_with="--[[",
     check_interval=86400,
     silent_updates=true,
     dependencies={
         {
-            name="inspect",
-            source_url="https://raw.githubusercontent.com/kikito/inspect.lua/master/inspect.lua",
-            script_relpath="lib/inspect.lua",
-            verify_file_begins_with="local",
+            name="FF_Functions",
+            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/lib/FairFight/FF_Funtions.lua",
+            script_relpath="lib/FairFight/FF_Functions.lua",
+            verify_file_begins_with="--FUNCTIONS",
             check_interval=default_check_interval,
-            is_required=true,
+            is_required=true
+        },
+        {
+            name="FF_Tabels",
+            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/lib/FairFight/FF_Tabels.lua",
+            script_relpath="lib/FairFight/FF_Tabels.lua",
+            verify_file_begins_with="--TABELS",
+            check_interval=default_check_interval,
+            is_required=true
+        },
+        {
+            name="FF_Logo",
+            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/blob/main/resources/FF.png",
+            script_relpath="resources/FairFight/FF_Logo.png",
+            check_interval=default_check_interval,
         }
     }
 }
@@ -1014,7 +1027,9 @@ misc_list:readonly("Made by ", "MrWalll")
 misc_list:hyperlink("GitHub", "https://github.com/MrWalll", "")
 local loadouts_hyperlink = misc_list:hyperlink("Loadouts", "https://github.com/MrWalll/FairFight/blob/main/README.md#loadouts", "")
 misc_list:action("Check for Updates", {}, "", function (on_click)
-    check_updates()
+    auto_update_config.check_interval = 0
+    inform.info("Checking for updates...")
+    auto_updater.run_auto_update(auto_update_config)
 end)
 
 root_test = menu.action(menu.my_root(), "Test", {}, "", function ()

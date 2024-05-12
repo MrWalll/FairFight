@@ -1,6 +1,6 @@
---[[
-      FUNCTIONS FOR VERSION 1.2 OF FAIRFIGHT
-]]
+
+--FUNCTIONS FOR VERSION 1.2 OF FAIRFIGHT
+----------------------------------------------
 
 EntityCoords = ENTITY.GET_ENTITY_COORDS
 EntityRotation = ENTITY.GET_ENTITY_ROTATION

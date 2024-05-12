@@ -1,6 +1,6 @@
---[[
-      TABLES FOR VERSION 1.2 OF FAIRFIGHT
-]]
+
+--TABELS FOR VERSION 1.2 OF FAIRFIGHT
+-----------------------------------------
 
 VEHICLE_BLACKLIST = {}
 BLACKLIST_TOGGLED_V = {}

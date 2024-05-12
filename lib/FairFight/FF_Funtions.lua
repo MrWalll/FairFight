@@ -40,11 +40,11 @@ resources_dir = filesystem.resources_dir().."/FairFight/"
 mainLua_path = filesystem.scripts_dir()..SCRIPT_RELPATH
 local BlockGodsFile = resources_dir.."BlockedPlayers.lua"
 
-if not filesystem.exists(resources_dir.."\\FF_Loadouts.lua") then
-    util.toast("[ERROR]\n\nRequired file not found: /resources/fairfight/FF_Loadouts.lua\n\n--["..SCRIPT_FILENAME.."]")
-    util.stop_script()
-end
-require("resources.fairfight.FF_Loadouts")
+--if not filesystem.exists(resources_dir.."\\FF_Loadouts.lua") then
+--    util.toast("[ERROR]\n\nRequired file not found: /resources/fairfight/FF_Loadouts.lua\n\n--["..SCRIPT_FILENAME.."]")
+--    util.stop_script()
+--end
+--require("resources.fairfight.FF_Loadouts")
 
 if not filesystem.exists(lib_dir.."\\FF_Tabels.lua") then
     util.toast("[ERROR]\n\nRequired file not found: /lib/fairfight/FF_Tabels.lua\n\n--["..SCRIPT_FILENAME.."]")
@@ -1854,45 +1854,3 @@ function removeGodBlocks()
     inform.normal_w_name("All the join blocks are now removed.")
 end
 
-----------------------------------------------------------------
---UPDATER
-----------------------------------------------------------------
---[[This is just my first test for an updater. If it bugs to much/not works at all, i'll most likely us auto-updater from hexarobi]]--
-
-function update()
-    async_http.init("raw.githubusercontent.com", "/MrWalll/FairFight/main/lib/FF_Tables.lua", function(newtables) --update tables file
-        local mf = io.open(lib_dir.."FF_Tables.lua", "wb")
-        if not mf then --check if file is valid/existent
-            util.toast("Could not update the lua.")
-            util.log("Failed to write to file: FF_Tables.lua")
-        end
-        mf:write(newtables) --overwrite local file with new version
-        mf:close() -- close to save changes
-        util.toast("Successfully updated (FF_Tables).") -- inform user of conform update progress
-    end)
-    async_http.dispatch()
-    util.yield(500)
-    async_http.init("raw.githubusercontent.com", "/MrWalll/FairFight/main/resources/FF_Loadouts.lua", function(newloadouts) --update loadout file
-        local mf = io.open(lib_dir.."FF_Loadouts.lua", "wb")
-        if not mf then
-            util.toast("Could not update the lua.")
-            util.log("Failed to write to file: FF_Loadouts.lua")
-        end
-        mf:write(newloadouts)
-        mf:close()
-        util.toast("Successfully updated (FF_Loadouts).")
-    end)
-    async_http.dispatch()
-    util.yield(550)
-    async_http.init("raw.githubusercontent.com", "/MrWalll/FairFight/main/lib/FF_Functions.lua", function(newfunctions) --update functions file
-        local mf = io.open(lib_dir..SCRIPT_FILENAME, "wb")
-        if not mf then
-            util.toast("Could not update the lua.")
-            util.log("Failed to write to file: "..SCRIPT_FILENAME)
-        end
-        mf:write(newfunctions)
-        mf:close()
-        util.toast("Successfully updated ("..SCRIPT_FILENAME..").")
-    end)
-    async_http.dispatch()
-end

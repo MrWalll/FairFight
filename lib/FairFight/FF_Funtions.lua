@@ -33,7 +33,6 @@ WoodBox = util.joaat("prop_box_wood06a")
 Toilet = util.joaat("prop_portaloo_01a")
 ownPed = players.user_ped()
 ownUser = players.user()
-ownVehicle = entities.get_user_vehicle_as_handle(false)
 ownCrew = players.clan_get_motto(ownUser)
 resources_dir = filesystem.resources_dir().."/FairFight/"
 mainLua_path = filesystem.scripts_dir()..SCRIPT_RELPATH
@@ -535,43 +534,54 @@ local function isinGrieferCar(vehicle)
 end
 ----------------------------------------------------------------
 --CHECK IF ANY VEHICLE TOGGEL IS ACTIVE
+local toggledHashes = {}
 ----------------------------------------------------------------
-local function check_for_Car_toggles()
+
+local function check_for_Car_toggles() --returns string off all toggeld hashes or false
     for _, cvt in pairs(CarToggles) do
-        if cvt["toggle"] then
-            return true
+        if cvt.toggle then
+            table.insert(toggledHashes, cvt.hash) --insert hash in table
         end
     end
-    return false
+    if #toggledHashes > 0 then
+        return toggledHashes  -- Return the table of toggled hashes
+    else
+        return false  -- Return false if no hashes are toggled
+    end
 end
 
-local function main_vehicle_check(vehicle, playerID) --check to see if toggled cars are beeing used by any players
-    local toggled = {}
-    count = 1
-    for k, v in pairs(CarToggles) do
-        if v["toggle"] then
-            for b, l in pairs(v) do --save in new local table
-                if b == "hash" then --only get the hash from the "CarToggles" table
-                    table.insert(toggled, count, l) --insert in a local table
-                    count = count + 1 --add 1 to count to have a int key for every hash
-                end
-            end
+
+function main_vehicle_check(vehicle) --check to see if toggled cars are beeing used by any players
+    if vehicle == 0 then return end -- stop if vehicle is invalid
+    local toggles = check_for_Car_toggles()
+    if #toggles == 0 then util.toast("no toggled cars") return end
+
+    util.toast("Toggled cars check performed")
+
+    for int, hash in ipairs(toggles) do
+        util.toast("checking models")
+        util.toast(hash)
+        if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) and isinGrieferCar(vehicle) then --check if vehicle is in toggledHash table and if player is in "griefer" verhicle (separate function)
+            util.toast("vehicle seen as bad and is toggled")
         end
     end
-    for l, c in pairs(toggled) do
-        if toggled[l] and isinGrieferCar(vehicle) then --check if hash from local table is being used by any player and if it is one of the possible "bad" cars (separate function)
-            return true
-        end
-    end
+    toggledHashes = {} --rest table
 end
 ----------------------------------------------------------------
 --GET VEHICLE CONTROL
 ----------------------------------------------------------------
 function control_vehicle(vehicle)
-    local netID = NETWORK.NETWORK_GET_NETWORK_ID_FROM_ENTITY(vehicle)
-    if not NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(vehicle) and util.is_session_started() then
-        NETWORK.SET_NETWORK_ID_CAN_MIGRATE(netID, true)
+    local ticks = 0
+    NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(vehicle)
+    while not NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(vehicle) do
         NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(vehicle)
+        util.yield()
+        ticks = ticks + 1
+        if ticks == 10 then
+            if not NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(vehicle) then
+                return false
+            end
+        end
     end
     return NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(vehicle)
 end
@@ -1452,7 +1462,7 @@ function vehicle_handle()
                 local NumWheelsToBreak = math.random(1, 4)
                 local isMK2 = VEHICLE.IS_VEHICLE_MODEL(vehicle, CarToggles.OPPRESSOR2["hash"])
                 local isRC = isInRC(playerID)
-                if not VEHICLE_BLACKLIST[playerID] and main_vehicle_check(vehicle, playerID) then
+                if not VEHICLE_BLACKLIST[playerID] and main_vehicle_check(vehicle) then
                     switch V_punishment do
                         case "Vehicle kick":
                             if inform.toggle then

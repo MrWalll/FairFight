@@ -8,7 +8,28 @@ PlayerName = players.get_name
 PlayerName2 = players.get_name_with_tags
 PlayerRID = players.get_rockstar_id
 PlayerRID2 = players.get_rockstar_id_2
-PlayerVehicle = PED.GET_VEHICLE_PED_IS_USING
+Spactate = function(playerID, value = none) --use like .value only if you like to set it add the booleam as a second parameter
+    if players.exists(playerID) and value == none then return menu.player_root(playerID):refByRelPath("Spectate>Nuts Method").value
+    elseif players.exists(playerID) and value != none then menu.player_root(playerID):refByRelPath("Spectate>Nuts Method").value = value
+    end
+end
+PlayerVehicle = function(playerID) --get vehicle from playerID and spectate player short time to load vehicle if out of render range (more or less)
+    local ped = PlayerPed(playerID)
+    local PedPos = EntityCoords(ped)
+    local OwnPos = EntityCoords(ownPed)
+    local vehicle = PED.GET_VEHICLE_PED_IS_USING(ped)
+    if SYSTEM.VDIST2(OwnPos.x,OwnPos.y,OwnPos.z,PedPos.x,PedPos.y,PedPos.z) > 850000 then -- +/-1000m
+        Spactate(playerID, true)
+        util.log("Distance: "..SYSTEM.VDIST2(OwnPos.x,OwnPos.y,OwnPos.z,PedPos.x,PedPos.y,PedPos.z))
+        util.yield(3000) --wait till vehicle is loaded in spectater mode
+        vehicle = PED.GET_VEHICLE_PED_IS_USING(ped)
+        Spactate(playerID, false)
+    else
+        vehicle = PED.GET_VEHICLE_PED_IS_USING(ped)
+        util.log("Distance: "..SYSTEM.VDIST2(OwnPos.x,OwnPos.y,OwnPos.z,PedPos.x,PedPos.y,PedPos.z))
+    end
+    return vehicle
+end
 PlayerCrew = players.clan_get_motto
 PlayerTags = players.get_tags_string
 PlayerPos = players.get_position
@@ -537,7 +558,7 @@ end
 local toggledHashes = {}
 ----------------------------------------------------------------
 
-local function check_for_Car_toggles() --returns string off all toggeld hashes or false
+local function check_for_Car_toggles() --returns table off all toggeld hashes or false
     for _, cvt in pairs(CarToggles) do
         if cvt.toggle then
             table.insert(toggledHashes, cvt.hash) --insert hash in table
@@ -546,23 +567,25 @@ local function check_for_Car_toggles() --returns string off all toggeld hashes o
     if #toggledHashes > 0 then
         return toggledHashes  -- Return the table of toggled hashes
     else
-        return false  -- Return false if no hashes are toggled
+        return false  -- Return false if no hashes(vehicles) are toggled
     end
 end
 
 
 function main_vehicle_check(vehicle) --check to see if toggled cars are beeing used by any players
-    if vehicle == 0 then return end -- stop if vehicle is invalid
+    if vehicle == 0 then return util.toast("Not in Vehicle",2) end -- stop if vehicle is invalid
     local toggles = check_for_Car_toggles()
-    if #toggles == 0 then util.toast("no toggled cars") return end
+    if toggles == false then util.toast("no toggled cars",2) return end
 
-    util.toast("Toggled cars check performed")
+    util.toast("Toggled cars check performed",2)
 
     for int, hash in ipairs(toggles) do
-        util.toast("checking models")
+        util.toast("checking models",2)
         util.toast(hash)
         if VEHICLE.IS_VEHICLE_MODEL(vehicle, hash) and isinGrieferCar(vehicle) then --check if vehicle is in toggledHash table and if player is in "griefer" verhicle (separate function)
-            util.toast("vehicle seen as bad and is toggled")
+            util.toast("vehicle seen as bad and is toggled",2)
+        else
+            util.toast("Models dont match",2)
         end
     end
     toggledHashes = {} --rest table
@@ -1620,7 +1643,7 @@ function vehicle_handle()
                                                     wheelIndex = 4
                                                     table.insert(wheelsToRemove, wheelIndex)
                                                 end
-                                                for _, wheelIndex in ipairs(wheelsToRemove) do
+                                                for __, wheelIndex in ipairs(wheelsToRemove) do
                                                     entities.detach_wheel(vehicle, wheelIndex)
                                                 end
                                                 wheelsToRemove = {}

@@ -4,12 +4,12 @@
 local current_version <const> = 1.2
 util.require_natives("3095a", "init")
 
-lib_dir = filesystem.scripts_dir().."/lib/fairfight/"
-if not filesystem.exists(lib_dir .. "/FF_funtions.lua") then
-    util.toast("[ERROR]\n\nRequired file not found: /lib/fairfight/FF_funtions.lua\n\n--["..SCRIPT_FILENAME.."]")
+lib_dir = filesystem.scripts_dir().."/lib/FairFight/"
+if not filesystem.exists(lib_dir .. "/FF_Funtions.pluto") then
+    util.toast("[ERROR]\n\nRequired file not found: /lib/fairfight/FF_Funtions.pluto\n\n--["..SCRIPT_FILENAME.."]")
     util.stop_script()
 end
-require("lib.fairfight.FF_funtions")
+require("lib.fairfight.FF_Funtions")
 
 ----------------------------------------------------------------
 -- Updater
@@ -50,8 +50,8 @@ local auto_update_config = {
     dependencies={
         {
             name="FF_Functions",
-            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/lib/FairFight/FF_Funtions.lua",
-            script_relpath="lib/FairFight/FF_Functions.lua",
+            source_url="https://raw.githubusercontent.com/MrWalll/FairFight/main/lib/FairFight/FF_Funtions.pluto",
+            script_relpath="lib/FairFight/FF_Functions.pluto",
             verify_file_begins_with="--FUNCTIONS",
             check_interval=default_check_interval,
             is_required=true
@@ -72,7 +72,7 @@ local auto_update_config = {
         }
     }
 }
-if not Debug_Active then auto_updater.run_auto_update(auto_update_config) end
+if not Debug_Active then auto_updater.run_auto_update(auto_update_config) else util.log("Debug Mode Active") end
 
 ----------------------------------------------------------------
 --Header
@@ -437,19 +437,15 @@ local plist = menu.list(menu.my_root(), "Lobby", {}, "")
 local vlist = menu.list(menu.my_root(), "Vehicle Options")
 	vlist:divider("Vehicle Options")
 
-    vehicle_activate_toggle = vlist:toggle("Activate", {}, "1. Choose the vehicles\n2. Choose the punishment\n3. Activate", function (toggle)
+    vehicle_activate_toggle = vlist:toggle_loop("Activate", {}, "1. Choose the vehicles\n2. Choose the punishment\n3. Activate", function (toggle)
         if toggle then
             vehicle_thread = util.create_thread(function()
-                while true do
-                    util.yield()
                     vehicle_handle()
-                end
-            end)
-        else
-            util.stop_thread(vehicle_thread)
+                    util.yield(100)
+            end)            
         end
         
-    end)
+    end, function() util.stop_thread(vehicle_thread) end)
 
 ----------------------------------------------------------------
 --Vehicles toggles
@@ -526,7 +522,7 @@ local vehlist = vlist:list("Vehicles")
             if toggle then
                 if toggleAll.value == true then
                     toggleAll.value = false
-                end
+                end                                                                                                                                                                                                                                                                             --[[        _  _           ]]
                 CarToggles.SPEEDO["toggle"] = true                                                                                                                                                                                                                                              --[[       (.)(.)          ]]
             else                                                                                                                                                                                                                                                                                --[[      (.____.)         ]]
                 CarToggles.SPEEDO["toggle"] = false                                                                                                                                                                                                                                             --[[        '--'           ]]
@@ -1042,7 +1038,8 @@ root_test = menu.action(menu.my_root(), "Test", {}, "", function ()
     --HUD.SET_BLIP_PRIORITY(HUD.GET_MAIN_PLAYER_BLIP_ID(), 100)
     --local scan = memory.scan("0000000000000020")
     --util.toast(scan, 9)
-    util.toast(PED.IS_PED_SHOOTING(ownPed))
+    local car = PlayerVehicle(ownPed)
+    main_vehicle_check(car)
 end)
 if Debug_Active then root_test.visible = true else root_test.visible = false end
 
@@ -1060,7 +1057,8 @@ function playerActionsSetup(playerID)
     playerroot:divider("" .. SCRIPT_NAME)
 
     player_test = menu.action(playerroot, "Test", {}, "", function ()
-        roadkill_player(playerID)
+        local car = PlayerVehicle(playerID)
+        main_vehicle_check(car)
     end)
     if Debug_Active then player_test.visible = true else player_test.visible = false end
 

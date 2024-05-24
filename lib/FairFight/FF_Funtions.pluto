@@ -8,28 +8,7 @@ PlayerName = players.get_name
 PlayerName2 = players.get_name_with_tags
 PlayerRID = players.get_rockstar_id
 PlayerRID2 = players.get_rockstar_id_2
-Spactate = function(playerID, value = none) --use like .value only if you like to set it add the booleam as a second parameter
-    if players.exists(playerID) and value == none then return menu.player_root(playerID):refByRelPath("Spectate>Nuts Method").value
-    elseif players.exists(playerID) and value != none then menu.player_root(playerID):refByRelPath("Spectate>Nuts Method").value = value
-    end
-end
-PlayerVehicle = function(playerID) --get vehicle from playerID and spectate player short time to load vehicle if out of render range (more or less)
-    local ped = PlayerPed(playerID)
-    local PedPos = EntityCoords(ped)
-    local OwnPos = EntityCoords(ownPed)
-    local vehicle = PED.GET_VEHICLE_PED_IS_USING(ped)
-    if SYSTEM.VDIST2(OwnPos.x,OwnPos.y,OwnPos.z,PedPos.x,PedPos.y,PedPos.z) > 850000 then -- +/-1000m
-        Spactate(playerID, true)
-        util.log("Distance: "..SYSTEM.VDIST2(OwnPos.x,OwnPos.y,OwnPos.z,PedPos.x,PedPos.y,PedPos.z))
-        util.yield(3000) --wait till vehicle is loaded in spectater mode
-        vehicle = PED.GET_VEHICLE_PED_IS_USING(ped)
-        Spactate(playerID, false)
-    else
-        vehicle = PED.GET_VEHICLE_PED_IS_USING(ped)
-        util.log("Distance: "..SYSTEM.VDIST2(OwnPos.x,OwnPos.y,OwnPos.z,PedPos.x,PedPos.y,PedPos.z))
-    end
-    return vehicle
-end
+PlayerVehicle = PED.GET_VEHICLE_PED_IS_USING
 PlayerCrew = players.clan_get_motto
 PlayerTags = players.get_tags_string
 PlayerPos = players.get_position
@@ -45,6 +24,7 @@ animal_godmode = false
 is_on_shoot_toggled = false
 stun_kills = false
 request_model = util.request_model
+request_control = entities.request_control
 fire = util.joaat("prop_beach_fire")
 healthModel = util.joaat("prop_ld_health_pack")
 snackModel = util.joaat("prop_choc_pq")
@@ -121,6 +101,14 @@ end
 
 --//============================Debug Mode============================\\
 Debug_Active = false
+experimental_otr = false
+
+local function log(msg)
+    ---@param msg string
+    if Debug_Active then
+        return util.log(msg.." \n\n--["..SCRIPT_FILENAME.."]")
+    end
+end
 --//============================Debug Mode============================\\
 
 
@@ -313,23 +301,26 @@ function OTRdetection(playerID)
         inform.normal_w_name("Join a lobby and try again.")
         return false
     end
-    if util.is_session_transition_active() then repeat util.yield(250) until util.is_session_started() end
+
+    while util.is_session_transition_active() do util.yield(250) end
 
     local otrDetected = players.is_otr(playerID)
     if otrDetected then return true end
     
-    if not NETWORK.NETWORK_HAS_PLAYER_STARTED_TRANSITION(playerID) and not NETWORK.IS_PLAYER_IN_CUTSCENE(playerID) 
+    if not NETWORK.NETWORK_HAS_PLAYER_STARTED_TRANSITION(playerID) and not NETWORK.NETWORK_JOIN_TRANSITION(playerID) and not NETWORK.IS_PLAYER_IN_CUTSCENE(playerID) 
     and not NETWORK.NETWORK_IS_PLAYER_IN_MP_CUTSCENE(playerID) then
         
-        local DeadForTooLong = $"Players>{PlayerName2(playerID)}>Classification: Modder>Dead For Too Long"
-        local ModdedHealth = $"Players>{PlayerName2(playerID)}>Classification: Modder>Modded Health (0/0)"
         local pos = PlayerPos(playerID)
         local playerBlip = HUD.GET_BLIP_FROM_ENTITY(PlayerPed(playerID))
-        local isinInterior = INTERIOR.GET_INTERIOR_FROM_ENTITY(PlayerPed(playerID)) == 0 and INTERIOR.GET_INTERIOR_AT_COORDS(pos.x, pos.y, pos.z) == 0 and INTERIOR.GET_INTERIOR_FROM_COLLISION(pos.x, pos.y, pos.z) == 0
-        
-        if players.is_visible(playerID) and not players.is_in_interior(playerID) and not players.is_using_rc_vehicle(playerID) then
-            if isinInterior then --to make sure bc stand interior detections isn't the best
-                if not HUD.DOES_BLIP_EXIST(playerBlip) and not HUD.GET_BLIP_SPRITE(playerBlip) == 417 then --303=bounty blip; 364=normal player with x in it; 417-419; blip of player in interior
+        local isntinInterior = INTERIOR.GET_INTERIOR_FROM_ENTITY(PlayerPed(playerID)) == 0 and INTERIOR.GET_INTERIOR_AT_COORDS(pos.x, pos.y, pos.z) == 0 
+        and INTERIOR.GET_INTERIOR_FROM_COLLISION(pos.x, pos.y, pos.z) == 0
+
+        if not players.is_visible(playerID) and not NETWORK.NETWORK_JOIN_TRANSITION(playerID) then return true end --check for visible bc if not  cant get ped -> pos -> do other checks
+
+        if not HUD.DOES_BLIP_EXIST(playerBlip) and not players.is_using_rc_vehicle(playerID) then
+            if isntinInterior then --to make sure bc stand interior detections isn't the best as far as i tested it (casino and car shops isn't detected maybe something else too)
+                if not players.is_in_interior(playerID) and not PLAYER.IS_PLAYER_DEAD(playerID) then--and not HUD.GET_BLIP_SPRITE(playerBlip) == 417 then --303=bounty blip; 364=normal player with x in it; 417-419; blip of player in interior
+                    
                     if not isDetectionPresent(playerID, "Modded Off Radar") then
                         players.add_detection(playerID, "Modded Off Radar", TOAST_ALL, 70)
                     end
@@ -338,15 +329,6 @@ function OTRdetection(playerID)
             end
         end
     end
-end
-
-local function side()
-	local nu = math.random(1, 2)
-	if nu == 1 then
-		return 5
-	else
-		return -5
-	end
 end
 
 local function vehicle_display_name(vehicle)
@@ -495,25 +477,6 @@ local function FastNet(entity, playerID, visible)
 
 end
 ----------------------------------------------------------------
---PLACE OBJECT NEXT TO PLAYER PLANE TO BREAKE OF WING
-----------------------------------------------------------------
-local function PlacePole(playerID)
-    local sidewaysOffset = ENTITY.GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PlayerPed(playerID), side(), 0, 0)
-    local pheading = ENTITY.GET_ENTITY_HEADING(PlayerPed(playerID))
-    request_model(WoodBox)
-    local a1 = OBJECT.CREATE_OBJECT(WoodBox, sidewaysOffset.x, sidewaysOffset.y, sidewaysOffset.z - 1, true, true, true)
-    ENTITY.SET_ENTITY_HEADING(a1, pheading + 90)
-    ENTITY.FREEZE_ENTITY_POSITION(a1, true)
-    FastNet(a1, playerID)
-    local b1 = OBJECT.CREATE_OBJECT(WoodBox, sidewaysOffset.x, sidewaysOffset.y, sidewaysOffset.z + 1, true, true, true)
-    ENTITY.SET_ENTITY_HEADING(b1, pheading + 90)
-    ENTITY.FREEZE_ENTITY_POSITION(b1, true)
-    FastNet(b1, playerID)
-    util.yield(500)
-    entities.delete_by_handle(a1)
-    entities.delete_by_handle(b1)
-end
-----------------------------------------------------------------
 --HIT PLAYER WITH TOILET
 ----------------------------------------------------------------
 local function placetoilet(playerID)
@@ -586,27 +549,10 @@ function main_vehicle_check(vehicle) --check to see if toggled cars are beeing u
             util.toast("vehicle seen as bad and is toggled",2)
         else
             util.toast("Models dont match",2)
+            log(vehicle)
         end
     end
     toggledHashes = {} --rest table
-end
-----------------------------------------------------------------
---GET VEHICLE CONTROL
-----------------------------------------------------------------
-function control_vehicle(vehicle)
-    local ticks = 0
-    NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(vehicle)
-    while not NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(vehicle) do
-        NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(vehicle)
-        util.yield()
-        ticks = ticks + 1
-        if ticks == 10 then
-            if not NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(vehicle) then
-                return false
-            end
-        end
-    end
-    return NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(vehicle)
 end
 ----------------------------------------------------------------
 --HAS VEHICLE WINDOWS TO DESTROY
@@ -632,7 +578,7 @@ end
 --SLINGSHOT VEHICLE
 ----------------------------------------------------------------
 local function slingshot_vehicle(vehicle)
-    if not control_vehicle(vehicle) then return false end
+    if not request_control(vehicle) then return false end
     ENTITY.SET_ENTITY_VELOCITY(vehicle, 0, 0, 5000)
     util.yield(300) --wait for the vehicle to be over houses and stuff
     ENTITY.SET_ENTITY_VELOCITY(vehicle, 0, 0, 2500)
@@ -788,7 +734,7 @@ end
 ----------------------------------------------------------------
 function roadkill_player(playerID)
     local Pped = PlayerPed(playerID)
-    if PlayerVehicle(Pped) ~= 0 then
+    if PlayerVehicle(PlayerPed(playerID)) ~= 0 then
         inform.normal_w_name("Does not work while "..PlayerName(playerID).." is in a vehicle")
         return
     end
@@ -1485,6 +1431,7 @@ function vehicle_handle()
                 local NumWheelsToBreak = math.random(1, 4)
                 local isMK2 = VEHICLE.IS_VEHICLE_MODEL(vehicle, CarToggles.OPPRESSOR2["hash"])
                 local isRC = isInRC(playerID)
+                local detach_path = menu.player_root(playerID):refByRelPath("Trolling>Vehicle>Detach Wing")
                 if not VEHICLE_BLACKLIST[playerID] and main_vehicle_check(vehicle) then
                     switch V_punishment do
                         case "Vehicle kick":
@@ -1507,7 +1454,7 @@ function vehicle_handle()
                                 if inform.toggle then
                                     util.toast(PlayerName(playerID).." is using a "..vehicle_display_name(vehicle)..".\nsmashing there windows...")
                                 end
-                                if control_vehicle(vehicle) then
+                                if request_control(vehicle) then
                                     for window = 0, 7 do
                                         VEHICLE.SMASH_VEHICLE_WINDOW(vehicle, window)
                                         util.yield(150)
@@ -1523,7 +1470,7 @@ function vehicle_handle()
                             end
                             break
                         case "Tires":
-                                if control_vehicle(vehicle) then
+                                if request_control(vehicle) then
                                     if not VEHICLE.GET_VEHICLE_TYRES_CAN_BURST(vehicle) then
                                         VEHICLE.SET_VEHICLE_TYRES_CAN_BURST(vehicle, true)
                                     end
@@ -1569,7 +1516,7 @@ function vehicle_handle()
                             if isMK2 or isRC then break end
                             if VEHICLE.IS_THIS_MODEL_A_PLANE(ENTITY.GET_ENTITY_MODEL(vehicle)) then
                                 if VEHICLE.GET_VEHICLE_BODY_HEALTH(vehicle) >= 500 and ENTITY.IS_ENTITY_IN_AIR(vehicle) and ENTITY.GET_ENTITY_SPEED(vehicle) >= 65 then
-                                    PlacePole(playerID)
+                                    detach_path:trigger()
                                     if inform.toggle then
                                         util.toast(PlayerName(playerID).." is using a "..vehicle_display_name(vehicle)..".\nDetaching a wing...")
                                     end
@@ -1592,7 +1539,7 @@ function vehicle_handle()
                                     if inform.toggle then
                                         util.toast(PlayerName(playerID).." is using a "..vehicle_display_name(vehicle)..".\nDetaching there parts...")
                                     end
-                                    control_vehicle(vehicle)
+                                    request_control(vehicle)
                                         if VEHICLE.GET_VEHICLE_NUM_OF_BROKEN_OFF_PARTS(vehicle) >= vehicle_doors_count then
                                             VEHICLE.SET_VEHICLE_FIXED(vehicle)
                                         end
@@ -1671,12 +1618,12 @@ function vehicle_handle()
                             if inform.toggle then
                                 util.toast(PlayerName(playerID).." is using a "..vehicle_display_name(vehicle)..".\nErasing there Car...")
                             end
-                            control_vehicle(vehicle)
+                            request_control(vehicle)
                             entities.delete_by_handle(vehicle)
                             break
                         case "Destroy Engine":
                             if VEHICLE.GET_VEHICLE_ENGINE_HEALTH(vehicle) <= -4000 then break end
-                            if control_vehicle(vehicle) then
+                            if request_control(vehicle) then
                                 if isRC then
                                     if inform.toggle then
                                         util.toast(PlayerName(playerID).." is using a "..vehicle_display_name(vehicle)..".\nThis has no Engine.\nExploding it...")
@@ -1700,7 +1647,7 @@ function vehicle_handle()
                             emp_shock_player(playerID)
                             break
                         case "Flip":
-                            if control_vehicle(vehicle) then
+                            if request_control(vehicle) then
                                 flip_vehicle_vertical(vehicle)
                                 if inform.toggle then
                                     util.toast(PlayerName(playerID).." is using a "..vehicle_display_name(vehicle)..".\nVehicle turned upside down...")

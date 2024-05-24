@@ -226,11 +226,14 @@ local plist = menu.list(menu.my_root(), "Lobby", {}, "")
                 fall = false
 			end
 		end)
-        plist:toggle_loop("Reveal Off Radar Players", {''}, "Shows players that hide otr with a custom blip.", function()
+        plist:toggle_loop("Reveal Off Radar Players", {''}, "Shows players that hide otr with a custom blip.", function(toggle)
             local playerList = players.list_all_with_excludes(false)
-
-            for _, playerID in ipairs(playerList) do
-                local isOTR = OTRdetection(playerID)
+            
+            for _, playerID in pairs(playerList) do
+                local isOTR = players.is_otr(playerID)
+                if experimental_otr then
+                    isOTR = OTRdetection(playerID) 
+                end
 
                 if isOTR then
                     if not otrPlayers[playerID] then
@@ -238,7 +241,7 @@ local plist = menu.list(menu.my_root(), "Lobby", {}, "")
                     end
 
                     SetBlipData(otrPlayers[playerID], playerID)
-               
+                
                 else
                     if otrPlayers[playerID] then
                         util.remove_blip(otrPlayers[playerID])
@@ -247,10 +250,12 @@ local plist = menu.list(menu.my_root(), "Lobby", {}, "")
                 end
             end
         end, function()
-            for _, playerID in ipairs(playerList) do
-                pcall(util.remove_blip, otrPlayers[playerID])
+            for _, playerID in pairs(playerList) do
+                if otrPlayers[playerID] then
+                    util.remove_blip(otrPlayers[playerID])
+                    otrPlayers[playerID] = nil
+                end
             end
-            otrPlayers = {}
         end)
 
         plist:divider("Remove Player Groups")
@@ -437,15 +442,18 @@ local plist = menu.list(menu.my_root(), "Lobby", {}, "")
 local vlist = menu.list(menu.my_root(), "Vehicle Options")
 	vlist:divider("Vehicle Options")
 
-    vehicle_activate_toggle = vlist:toggle_loop("Activate", {}, "1. Choose the vehicles\n2. Choose the punishment\n3. Activate", function (toggle)
+    vehicle_activate_toggle = vlist:toggle("Activate", {}, "1. Choose the vehicles\n2. Choose the punishment\n3. Activate", function (toggle)
         if toggle then
             vehicle_thread = util.create_thread(function()
+                while true do
+                    util.yield(250)
                     vehicle_handle()
-                    util.yield(100)
-            end)            
+                end
+            end)
+        else
+            util.stop_thread(vehicle_thread)
         end
-        
-    end, function() util.stop_thread(vehicle_thread) end)
+    end)
 
 ----------------------------------------------------------------
 --Vehicles toggles
@@ -1039,6 +1047,7 @@ root_test = menu.action(menu.my_root(), "Test", {}, "", function ()
     --local scan = memory.scan("0000000000000020")
     --util.toast(scan, 9)
     local car = PlayerVehicle(ownPed)
+    util.log(car)
     main_vehicle_check(car)
 end)
 if Debug_Active then root_test.visible = true else root_test.visible = false end
@@ -1057,10 +1066,22 @@ function playerActionsSetup(playerID)
     playerroot:divider("" .. SCRIPT_NAME)
 
     player_test = menu.action(playerroot, "Test", {}, "", function ()
-        local car = PlayerVehicle(playerID)
-        main_vehicle_check(car)
+        local car = PlayerVehicle(PlayerPed(playerID))
+        --main_vehicle_check(car)
+        --util.log("car:"..car)
+        --vehicle_handle()
+        local detach_path = menu.player_root(playerID):refByRelPath("Trolling>Vehicle>Detach Wing")
+
+        detach_path:trigger()
     end)
-    if Debug_Active then player_test.visible = true else player_test.visible = false end
+    player_test_toggle = menu.toggle_loop(playerroot, "Test", {}, "", function ()
+        --local car = PlayerVehicle(playerID)
+        --main_vehicle_check(car)
+        NETWORK.SET_PLAYER_VISIBLE_LOCALLY(playerID, true)
+    end)
+    player_test.visible = false
+    player_test_toggle.visible = false
+    if Debug_Active then player_test.visible = true player_test_toggle.visible = true end
 
         local ghost = {}
         local Gmod_tools = playerroot:list("Godmode-Tools", {}, "")
@@ -1197,21 +1218,22 @@ function playerActionsSetup(playerID)
 
         local nogod
         nogod = Gmod_tools:toggle_loop("Remove Player Godmode", {"nogod"}, "Blocked by most menus.", function ()
-            if PED.IS_PED_DEAD_OR_DYING(PlayerPed(playerID)) then
+            if PLAYER.IS_PLAYER_DEAD(playerID) then
                 nogod.value = false
                 util.toast($"{PlayerName(playerID)} is not alife")
             end
-            if not PED.IS_PED_DEAD_OR_DYING(PlayerPed(playerID)) then
+            if not PLAYER.IS_PLAYER_DEAD(playerID) then
                 util.trigger_script_event(1 << playerID, {800157557, players.user(), 225624744, math.random(0, 9999)})
             end
         end)
 
         Gmod_tools:toggle_loop("Remove Vehicle Godmode", {}, "Blocked by most menus.", function ()
-            local veh = control_vehicle(PlayerVehicle(PlayerPed(playerID)))
-            if PED.IS_PED_IN_ANY_VEHICLE(PlayerPed(playerID), false) and not PED.IS_PED_DEAD_OR_DYING(PlayerPed(playerID)) then
+            local veh = PlayerVehicle(PlayerPed(playerID))
+            if veh != 0 and entities.is_invulnerable(veh) and not PLAYER.IS_PLAYER_DEAD(playerID) then
+                request_control(veh)
                 ENTITY.SET_ENTITY_CAN_BE_DAMAGED(veh, true)
                 ENTITY.SET_ENTITY_INVINCIBLE(veh, false)
-                ENTITY.SET_ENTITY_PROOFS(veh, false, false, false, false, false, 0, 0, false)
+                ENTITY.SET_ENTITY_PROOFS(veh, false, false, false, false, false, false, false, false)
             end
         end)
 

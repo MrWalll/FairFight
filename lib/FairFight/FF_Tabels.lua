@@ -172,7 +172,7 @@ V_troll = {
     {"Window crush", {}, "Destroys and fixes the windows in a loop. If there are any"}
 }
 V_toxic = {
-    {"Lose Parts", {}, "Break of parts (doors) in a loop.\n\nFor planes, it breaks a wing off.(Chance of plane exploding is high)\nFor Helis, it breaks of the tail boom."},
+    {"Lose Parts", {}, "Break of parts (doors/wheels) in a loop.\n\nFor planes, it breaks a wing off.\nFor Helis, it breaks of the tail boom."},
     {"Lobby Kick", {}, "Uses Stand Smart Kick"},
     {"Explode", {}, "Explodes the Vehicle"},
     {"Slingshot", {}, "Boost the vehicle up and forward"}
